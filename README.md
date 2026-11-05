@@ -48,6 +48,12 @@ On Oct 31, 2026 the human grader — Zac Faber — officially graded and amended
 all four rules. That grading record is `GRADES.md`, and it governs all future
 binds.
 
+## Telepathy and Grapefruit: the DJ proof
+
+The widget's second domain. Telepathy (in `telepathy/`) is a live set console the widget built at my direction, much of the build driven from my phone by voice and text while I was away from the desk. Under the interface is a real time analysis bus inside a SuperCollider audio engine: RMS, peak, and six band energies streamed into the page ten times a second. The interface is not simulating the music; it is downstream of it.
+
+Grapefruit (in `grapefruit/`) is the set I conducted through it. My calls, in plain English, one gate at a time, every call logged with my verdict (keep or kill), my own words, and timestamps. The log is a labeled dataset of one person's taste, and it compounds: "turn it down a tad" has a number, and the system knows it because I taught it. I ship changes to my computer from the gym the same way. The widget changed how I use a computer.
+
 ## Repo layout
 
 ```
