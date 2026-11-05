@@ -12,6 +12,8 @@ The reasoning core is Meta's **Muse Spark** (`muse-spark-1.3` via the Meta
 Model API). Every forge, bind, and verify run is a live Spark call with a
 strict JSON schema — and every forged skill carries its evidence with it.
 
+**Demo video (2:17):** https://www.youtube.com/watch?v=Kpf-s-yXiB8
+
 ## Skill 001 — the proof
 
 Skill 001 is a website-building judgment skill, forged on Oct 29, 2026 from
