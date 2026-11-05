@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "creator_id": "kyle-parker-ko-fitness",
+  "creator_name": "Kyle Parker / KO Fitness",
+  "source_material": {
+    "profile_url": "https://kofitness.net",
+    "bio": "Kyle Parker is a NASM Certified Personal Trainer, USAT Nationals qualifier, coach, and athlete training for IRONMAN Florida 2026. His record describes a rebuild from being over 210 pounds in January 2025 and unable to run a mile to road, trail, triathlon, and ultramarathon competition. His coaching centers on personalized planning, honest accountability, consistency, and adapting training to real life.",
+    "captions": [
+      "Train with purpose. Driven by discipline.",
+      "The coach is in the work, too.",
+      "You don't need more hype. You need a plan that fits your life, honest accountability, and the nerve to keep going when motivation disappears.",
+      "The goal is not a temporary burst. It's becoming the person who follows through."
+    ],
+    "content_samples": [
+      {"ref": "kofitness:home:founder", "type": "site copy and athlete photograph", "context": "Identifies Kyle as Founder, Coach, Athlete, NASM Certified Personal Trainer, USAT Nationals qualifier, and an athlete training for IRONMAN Florida 2026."},
+      {"ref": "kofitness:about:why-ko", "type": "founder story", "context": "Explains that KO Fitness exists to replace generic plans and solo effort with specific direction, real feedback, and sustained follow-through."},
+      {"ref": "kofitness:coaching:process", "type": "coaching offer", "context": "Describes a four-step Apply, Talk, Build, Work process and personalized coaching for people who are done guessing."},
+      {"ref": "kofitness:home:long-build", "type": "athlete journey", "context": "Records the January 2025 starting point at 210+ pounds and unable to run a mile, subsequent qualification, and IRONMAN Florida 2026 goal."},
+      {"ref": "kofitness:kyle-ask", "type": "content verification record", "context": "Marks testimonials, detailed coaching terms, races, application destination, and some image licensing as awaiting Kyle's confirmation; these are not treated as established evidence."}
+    ]
+  },
+  "observations": {
+    "recurring_topics": ["personalized coaching", "accountability", "consistency over unsustainable intensity", "training that fits real life", "Kyle's ongoing athlete journey", "endurance racing", "following through"],
+    "recurring_language": ["the work", "discipline", "no hype", "real life", "follow through", "stop starting over", "plan", "accountability"],
+    "visual_signals": ["real photographs of Kyle running and racing", "race distances and split-like numerals recur in the source build", "training spans running, cycling, swimming, recovery, and race preparation"],
+    "audience_signals": ["people tired of repeatedly restarting", "first-time finishers and athletes seeking faster results", "people who want an adaptive plan and direct accountability", "prospective one-on-one coaching clients"]
+  },
+  "constraints": {
+    "must_include": ["NASM-CPT credential", "IRONMAN Florida 2026 training goal", "one-on-one coaching", "Kyle's documented athlete journey", "only verified claims and licensed or approved media"],
+    "must_avoid": ["invented testimonials or client results", "unconfirmed race schedules", "unconfirmed billing, cancellation, pause, or package terms", "unlicensed race photography", "claims that the intake routing or coaching-page destination is final when Kyle's confirmation is pending"]
+  }
+}

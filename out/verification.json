@@ -1,0 +1,110 @@
+{
+  "artifact": {
+    "screen_refs": [],
+    "url": "https://preview.d2lp9muyf525c9.amplifyapp.com"
+  },
+  "checks": [
+    {
+      "criterion": "Lead media is recognizably Kyle's own approved running or racing photograph, not stock",
+      "decision_id": "hero_asset",
+      "evidence": "screen_refs is [] and page text contains no image file name, license, alt-text, or visual description identifying hero photo subject or source as Kyle.",
+      "revision": "",
+      "status": "UNCERTAIN"
+    },
+    {
+      "criterion": "No visible softness, upscaling, or draft-quality compromise",
+      "decision_id": "hero_asset",
+      "evidence": "No screenshots or image-quality data supplied; page text alone cannot show sharpness, upscaling, or fidelity.",
+      "revision": "",
+      "status": "UNCERTAIN"
+    },
+    {
+      "criterion": "Kyle Parker / KO Fitness identity is legible in front of the media",
+      "decision_id": "hero_asset",
+      "evidence": "Page text shows 'KO / FITNESS' and '1-on-1 coaching with Kyle Parker' but with screen_refs [] placement and legibility in front of hero media cannot be confirmed.",
+      "revision": "",
+      "status": "UNCERTAIN"
+    },
+    {
+      "criterion": "Fallback poster matches hero framing at full resolution",
+      "decision_id": "hero_asset",
+      "evidence": "No poster file, reference, or screenshot in supplied evidence to compare framing or resolution.",
+      "revision": "",
+      "status": "UNCERTAIN"
+    },
+    {
+      "criterion": "Creator story leads the post-hero scroll",
+      "decision_id": "sections",
+      "evidence": "Post-hero starts with 'AI intake coach \u00b7 live 01 / 06', stats '5:27 IRONMAN 70.3 Santa Cruz', testimonial placeholders, 'AI The intake' and '013 Coaching $500 per month' before '140.6 The long build Proof starts with doing it yourself. In January 2025, Kyle was 210+ pounds...'",
+      "revision": "Move the Kyle rebuild story block (January 2025 at 210+ pounds unable to run a mile and why KO Fitness exists) to immediately follow the hero, before stats, AI intake, testimonial placeholders, and coaching pricing/process blocks.",
+      "status": "FAIL"
+    },
+    {
+      "criterion": "Work proof and any verified demand proof have distinct space with no invented testimonials",
+      "decision_id": "sections",
+      "evidence": "Testimonial slots read only as 'Awaiting content \u00b7 client testimonial \u00b7 first name + specific result' x3 with no invented names or results; work proof '140.6 The long build' appears in a separate block.",
+      "revision": "",
+      "status": "PASS"
+    },
+    {
+      "criterion": "Scroll contains one full-bleed signature moment",
+      "decision_id": "sections",
+      "evidence": "Page text lists 'Awaiting content \u00b7 starting-point photo' and 'Awaiting content \u00b7 USAT Nationals photo' but describes no layout or bleed; with screen_refs [] full-bleed presentation cannot be confirmed.",
+      "revision": "",
+      "status": "UNCERTAIN"
+    },
+    {
+      "criterion": "Path resolves to one-on-one coaching inquiry, not a link list",
+      "decision_id": "sections",
+      "evidence": "Primary CTAs resolve to inquiry: 'Apply for Coaching', 'Start your application \u2192', 'Talk to the intake coach \u2192', closing 'Apply for Coaching \u2192'; footer links are secondary.",
+      "revision": "",
+      "status": "PASS"
+    },
+    {
+      "criterion": "System is recognizably derived from Kyle's training and racing record, not a template",
+      "decision_id": "visual_direction",
+      "evidence": "screen_refs is []; page text alone with 'RUN / RIDE / SWIM / RECOVER' and 'SPLIT' numerals cannot establish visual derivation from approved photography versus template.",
+      "revision": "",
+      "status": "UNCERTAIN"
+    },
+    {
+      "criterion": "Look, density, and motion are coherent and restrained",
+      "decision_id": "visual_direction",
+      "evidence": "No screenshots or motion records supplied; coherence, density and motion restraint cannot be judged from page text alone.",
+      "revision": "",
+      "status": "UNCERTAIN"
+    },
+    {
+      "criterion": "No visible template or inherited reference-build identity",
+      "decision_id": "visual_direction",
+      "evidence": "No visual evidence supplied to confirm or deny template or reference-build inheritance.",
+      "revision": "",
+      "status": "UNCERTAIN"
+    },
+    {
+      "criterion": "Story and labels speak in first person as Kyle",
+      "decision_id": "voice",
+      "evidence": "Story and coach blocks are third-person: 'In January 2025, Kyle was 210+ pounds', 'Kyle coaches from experience:', 'Kyle builds the path', '1-on-1 coaching with Kyle Parker' not 'I'.",
+      "revision": "Rewrite all story and labels as Kyle in first person (e.g., 'I was 210+ pounds in January 2025... I build...') and remove third-person agency description.",
+      "status": "FAIL"
+    },
+    {
+      "criterion": "Lines are short, plain, and confident without hype stacking",
+      "decision_id": "voice",
+      "evidence": "Observed lines are short and plain: 'Stop starting over.', 'Stack the days', 'No shortcut. Just training, recovery, and showing up again.' No stacked superlatives in text.",
+      "revision": "",
+      "status": "PASS"
+    },
+    {
+      "criterion": "Wording is grounded in sourced creator language with no invented quotes or unconfirmed claims",
+      "decision_id": "voice",
+      "evidence": "Page adds unconfirmed specifics beyond allowed NASM-CPT, USAT Nationals qualifier, IRONMAN Florida 2026, 1-on-1 coaching: '5:27 IRONMAN 70.3 Santa Cruz', '2nd First 50K ultra, overall', '$500 per month Weekly plan updates...', '10% of merch and race revenue goes to...', 'AI intake coach \u00b7 live 01/06' with six-question inbox claims.",
+      "revision": "Remove or hold for Kyle confirmation all unconfirmed results, pricing/terms, charity-allocation details, and AI-agent routing/schedule claims; retain only verified NASM-CPT, USAT Nationals qualifier, IRONMAN Florida 2026 goal, and 1-on-1 coaching in observed vocabulary.",
+      "status": "FAIL"
+    }
+  ],
+  "creator_id": "kyle-parker-ko-fitness",
+  "overall": "FAIL",
+  "schema_version": "1.0",
+  "skill_id": "creator_site_judgment"
+}

@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "episode_id": "tootripsy-sections",
+  "skill_domain": "creator_site_judgment",
+  "creator": {"id": "tootripsy", "name": "Nikhil Gupta"},
+  "decision": "sections",
+  "before": {
+    "screen_ref": "initial build order and pre-v4 scroll",
+    "page_context": "The initial section order did not yet reflect Zac's review priority for the creator's story, proof, work, signature moment, and commercial close.",
+    "ax_summary": "A single-page scroll supported by media-kit and inquiry routes."
+  },
+  "action": {
+    "summary": "Open the post-hero scroll with the creator's short first-person Story, follow with verified brands given real room, selected work, a postcard/content-pillar passage, one full-bleed signature video moment, media-kit proof, and the inquiry close. Correct the order and numbering through review rounds.",
+    "selected_ref": "final reviewed home sequence documented across REVIEW-V4, PRO-REPORT-V5, and PRO-REPORT-V6A"
+  },
+  "annotation": {
+    "why": "Zac directed that the subject is the creator, not a gallery, and then moved the short version to the first scroll position. The standards require the creator's story, real proof, and sellable machinery. Reviews also required one named signature moment, meaningful space for brand proof, and a coherent progression to media kit and inquiry rather than a link list.",
+    "reject": "Do not generalize travel categories, drone or aerial sections, postcards, these brands, these place groups, this exact number of sections, or this precise ordering as a template for another creator.",
+    "confidence": "high"
+  },
+  "after": {
+    "screen_ref": "qa/REVIEW-V4.md, qa/PRO-REPORT-V5.md, qa/PRO-REPORT-V6A.md",
+    "outcome": "The creator's short story leads the scroll; verified brand and work proof receive distinct space; the scroll contains a full-bleed signature moment; media-kit proof and a direct work-with-me close complete the path."
+  },
+  "provenance": [
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/STAFF-CODEX-PRO-V3.md", "evidence": "Zac's addenda state that the subject is him, the photography is proof, and the build needs one signature standout moment."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/qa/REVIEW-V4.md", "evidence": "Documents Zac's correction putting The short version first on scroll, the full-bleed signature video fix, highlighted brands, and coherent numbering."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/qa/PRO-REPORT-V5.md", "evidence": "Records the Story, Brands, Work, Postcards, Aerial, and Media kit sequence after the content-pillar pass."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/qa/PRO-REPORT-V6A.md", "evidence": "Records the final section map and the insertion of the creator-evidenced places index without changing the downstream commercial close."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/agency/strategy.md", "evidence": "Defines native absorption of follow, collaboration, media-kit, and inquiry jobs instead of an outbound link list."}
+  ]
+}

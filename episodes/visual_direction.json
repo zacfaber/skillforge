@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "episode_id": "tootripsy-visual-direction",
+  "skill_domain": "creator_site_judgment",
+  "creator": {"id": "tootripsy", "name": "Nikhil Gupta"},
+  "decision": "visual_direction",
+  "before": {
+    "screen_ref": "agency direction and creator brief",
+    "page_context": "The site needed a visual system recognizably derived from this creator rather than inherited from another creator build or a generic portfolio template.",
+    "ax_summary": "A cinematic creator portfolio and media kit with restrained hierarchy and image-led proof."
+  },
+  "action": {
+    "summary": "Set the direction as Apple-keynote restraint over a drone reel: sparse, cinematic, and polished, with the visual temperature, typography, motion, and accent derived from Nikhil's own content and persona rather than the reference build.",
+    "selected_ref": "agency/direction.md and agency/design-system.md"
+  },
+  "annotation": {
+    "why": "Zac's standard says fidelity governs identity while ambition governs craft: look, feel, density, motion, and motifs must match the creator's real record so a follower recognizes the creator rather than a template. The documented direction deliberately departs from the warm reference build and derives its cool, minimal, image-led world from Nikhil's grid and work.",
+    "reject": "Do not generalize the cool blue-black or glacier palette, cyan accent, Archivo typography, drone-reel framing, travel imagery, Silicon Valley sheen, or Nikhil's particular level of restraint.",
+    "confidence": "high"
+  },
+  "after": {
+    "screen_ref": "agency/direction.md and qa/REPORT.md",
+    "outcome": "The finished system is cinematic and restrained, with creator-specific imagery, sparse type, controlled motion, and a distinct world from the warm reference site."
+  },
+  "provenance": [
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/agency/direction.md", "evidence": "Names the direction verbatim and documents deliberate creator-specific departures in temperature, type, motion, accent, and commercial path."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/agency/design-system.md", "evidence": "Documents the image-derived accent, restrained section system, typographic roles, motion vocabulary, and no-upscale photography rules."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/research/nikhil-brief.md", "evidence": "Records Zac's reading of sleek, tech-polished Bay Area sheen and the Taste Card direction derived from the creator's grid."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/agency/BLUE-CHIP-STANDARD.md", "evidence": "Defines creator-exact look and feel, anti-template fidelity, and ambitious craft as the quality criteria."}
+  ]
+}

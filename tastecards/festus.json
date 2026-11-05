@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "creator_id": "festus-feasts",
+  "creator_name": "Festus Ezeli / Festus Feasts",
+  "source_material": {
+    "profile_url": "https://www.instagram.com/festusfeasts/",
+    "bio": "Festus Ezeli is a former Golden State Warriors player and 2015 NBA champion whose creator work spans food, broadcasting, conversations, and hosting. His public biography connects Benin City, moving to the United States at 14, the Bay Area, his basketball career, and his present food and media work. Festus Feasts follows restaurants, owners, food, and culture through his visits and conversations.",
+    "captions": [
+      "Hidden Heat in Chinatown: Four Kings Delivers a Royal Feast",
+      "The family behind Buttercup Diner",
+      "Nigerian cooking and a conversation at the table",
+      "Dine with an NBA Champion"
+    ],
+    "content_samples": [
+      {"ref": "festus:four-kings", "type": "creator restaurant story", "context": "Four Kings in San Francisco Chinatown, centered on Singaporean chili crab and milk bread."},
+      {"ref": "festus:buttercup-diner", "type": "creator video story", "context": "Buttercup Diner in Oakland, centered on a family business and the college sweethearts behind it."},
+      {"ref": "festus:9jagrills", "type": "creator food and conversation story", "context": "9JaGrills in downtown Oakland, centered on Nigerian cooking and conversation at the table."},
+      {"ref": "festus:chotto-matte", "type": "hosted dining experience", "context": "Chotto Matte in San Francisco, the setting for Festus's Dine with an NBA Champion experience."},
+      {"ref": "festus:rebuilding-the-beast", "type": "podcast archive", "context": "A podcast about rebuilding, purpose, fitness, mental health, and personal stories; the documented latest release is March 2023."},
+      {"ref": "festus:official-bio", "type": "creator biography", "context": "Supports his identities as former NBA champion, broadcaster, foodie, creator, and speaker, plus his Benin City to Bay Area story."}
+    ]
+  },
+  "observations": {
+    "recurring_topics": ["Bay Area restaurants", "the people behind food businesses", "Nigerian food and heritage", "shared meals and conversation", "basketball history", "reinvention and rebuilding", "hospitality and hosting"],
+    "recurring_language": ["Festus Feasts", "Rebuilding the Beast", "Dine with an NBA Champion", "conversation at the table", "family behind the business"],
+    "visual_signals": ["creator at restaurant tables", "food served as part of a shared meal", "conversations with restaurant owners", "basketball archive imagery", "Bay Area restaurant settings"],
+    "audience_signals": ["followers of Bay Area food stories", "people interested in restaurant owners and cultural context", "fans who know Festus from the Warriors", "listeners interested in rebuilding and personal growth", "guests interested in a hosted dining experience"]
+  },
+  "constraints": {
+    "must_include": ["former Golden State Warriors player and 2015 NBA champion", "creator's food and conversation work", "Four Kings", "Buttercup Diner", "9JaGrills", "Chotto Matte", "only creator-side facts with traceable sources"],
+    "must_avoid": ["invented restaurant partnerships, discounts, ratings, availability, or scarcity", "presenting the archived podcast as an active weekly show", "invented audience statistics", "unverified media credentials", "claims of commercial photo rights where the creator record does not establish them"]
+  }
+}

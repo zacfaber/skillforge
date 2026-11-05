@@ -1,0 +1,101 @@
+{
+  "bindings": [
+    {
+      "confidence": "low",
+      "decision": "Lead hero with a confirmed-owned Festus Feasts table moment showing Festus at a Bay Area restaurant table in shared meal / conversation (candidate contexts only: Four Kings, Buttercup Diner, 9JaGrills, Chotto Matte) at native fidelity with Festus Feasts / Festus Ezeli identity lockup in front and a matching full-resolution poster from the same framing. Do not ship hero until an owned rights-cleared source is confirmed; do not use stock, upscaling, or soft treatment.",
+      "decision_id": "hero_asset",
+      "evidence_refs": [
+        "festus:four-kings",
+        "festus:buttercup-diner",
+        "festus:9jagrills",
+        "festus:chotto-matte"
+      ],
+      "rationale": "TasteCard documents creator-at-table, shared-meal, and owner-conversation identity across four restaurant contexts, but provides no confirmed rights-cleared native file. Rights evidence is therefore insufficient to lock a final file, and constraints prohibit claiming commercial photo rights.",
+      "rule": "Lead the hero with the creator's own strongest identity-bearing work at full native fidelity, with creator identity foregrounded and a matching fallback, allowing no visible quality compromise.",
+      "success_criteria": [
+        "Lead media is recognizably Festus's own table/conversation work, not stock",
+        "No visible softness, upscaling, or draft-quality compromise",
+        "Festus Feasts / Festus Ezeli identity is legible in front of media",
+        "Fallback poster matches hero framing at full resolution"
+      ]
+    },
+    {
+      "confidence": "medium",
+      "decision": "Sequence post-hero as: 1) short first-person Story (Benin City, move to US at 14, Bay Area, former Golden State Warriors player and 2015 NBA champion to food/media), 2) distinct Work proof for Four Kings, Buttercup Diner, and 9JaGrills kept separate, 3) one full-bleed Signature hosted moment for Chotto Matte Dine with an NBA Champion, 4) archive note for Rebuilding the Beast explicitly as March 2023 archive not an active weekly show, 5) direct inquiry close. Include all four venues with only traceable facts; invent no partnerships, discounts, ratings, availability, audience statistics, or media credentials.",
+      "decision_id": "sections",
+      "evidence_refs": [
+        "festus:official-bio",
+        "festus:four-kings",
+        "festus:buttercup-diner",
+        "festus:9jagrills",
+        "festus:chotto-matte",
+        "festus:rebuilding-the-beast"
+      ],
+      "rationale": "TasteCard supplies story facts and four distinct restaurant/conversation contexts plus an archived podcast with a documented latest release of March 2023, but supplies no verifiable demand metrics or commercial proof. Order can be set creator-first with distinct proof spaces, but demand must not be invented.",
+      "rule": "Sequence the scroll creator-first: personal story, then distinct proof of demand and work including one signature moment, then commercial proof closing in direct inquiry.",
+      "success_criteria": [
+        "Creator story leads post-hero scroll",
+        "Four Kings, Buttercup Diner, and 9JaGrills have distinct work space, Chotto Matte is the signature hosted moment",
+        "Rebuilding the Beast is labeled as archive to March 2023, not active weekly",
+        "Path resolves to direct inquiry without link-list or invented claims"
+      ]
+    },
+    {
+      "confidence": "medium",
+      "decision": "Build an image-led, table-centered hospitality system derived only from Festus's record: Bay Area restaurant tables, food as shared meal, conversations with owners, with basketball history and Nigerian heritage as secondary context. Keep density and motion restrained and coherent so a follower recognizes Festus Feasts; do not import any reference-build or template look.",
+      "decision_id": "visual_direction",
+      "evidence_refs": [
+        "festus:four-kings",
+        "festus:buttercup-diner",
+        "festus:9jagrills",
+        "festus:chotto-matte",
+        "festus:official-bio"
+      ],
+      "rationale": "TasteCard visual signals and recurring topics ground identity in restaurant tables, shared meals, owner conversations, Bay Area settings, plus basketball archive and Nigerian food/heritage. No template palette, type, or motion is sourced, so system must be derived functionally from that record without inventing assets.",
+      "rule": "Derive the visual system from the specific creator's observed record so the site reads as that creator, holding identity fidelity fixed while pushing craft ambition beyond templates.",
+      "success_criteria": [
+        "System reads as Festus Feasts table/conversation hospitality, not a template",
+        "Look, density, and motion are coherent and restrained",
+        "No inherited reference-build identity is visible"
+      ]
+    },
+    {
+      "confidence": "high",
+      "decision": "Write all copy as Festus in first person, short plain confident lines using only sourced wording: Festus Feasts, Rebuilding the Beast, Dine with an NBA Champion, conversation at the table, family behind the business, plus sourced facts (former Golden State Warriors player and 2015 NBA champion, Benin City, moved to US at 14, Bay Area, food/broadcasting/conversations/hosting). No agency voice, no hype stacking, no invented quotations or unsourced facts.",
+      "decision_id": "voice",
+      "evidence_refs": [
+        "festus:official-bio",
+        "festus:four-kings",
+        "festus:buttercup-diner",
+        "festus:9jagrills",
+        "festus:chotto-matte",
+        "festus:rebuilding-the-beast"
+      ],
+      "rationale": "TasteCard provides bio facts, four captions, and recurring language sufficient to ground first-person plain copy. No additional wording is sourced, so invention is prohibited.",
+      "rule": "Write site copy as the creator in first person at a professional level, using short plain confident lines grounded in observed wording without agency description or invented statements.",
+      "success_criteria": [
+        "Story and labels speak in first person as Festus",
+        "Lines are short, plain, confident without hype stacking",
+        "All wording traces to sourced language/facts with no invented quotes"
+      ]
+    }
+  ],
+  "creative_brief": {
+    "hero": "Hero gate: use only a confirmed-owned Festus Feasts video or photo of Festus at a Bay Area restaurant table in meal/conversation from Four Kings, Buttercup Diner, 9JaGrills, or Chotto Matte contexts. Retain native quality through crop, foreground Festus Feasts / Festus Ezeli lockup, provide matching full-resolution poster fallback from same framing. If no rights-cleared source is supplied, show a solid placeholder and explicit rights gap \u2014 do not ship stock, upscaled, or soft media and do not claim commercial rights.",
+    "sections": [
+      "Story \u2014 short first-person: Benin City, move to US at 14, Bay Area, former Golden State Warriors player and 2015 NBA champion, now food/conversation/hosting as Festus Feasts.",
+      "Work: Four Kings in San Francisco Chinatown \u2014 Singaporean chili crab and milk bread visit and conversation.",
+      "Work: Buttercup Diner in Oakland \u2014 family business and college sweethearts story.",
+      "Work: 9JaGrills in downtown Oakland \u2014 Nigerian cooking and conversation at the table.",
+      "Signature full-bleed: Chotto Matte in San Francisco \u2014 Dine with an NBA Champion hosted experience.",
+      "Archive: Rebuilding the Beast \u2014 labeled as archive about rebuilding/purpose/fitness/mental health, latest documented March 2023, not active weekly.",
+      "Close: direct inquiry for meals, hosting, and conversations \u2014 no ratings, discounts, availability, audience stats, or outbound link list."
+    ],
+    "summary": "Build a Festus Feasts site for Festus Ezeli \u2014 former Golden State Warriors player and 2015 NBA champion now doing Bay Area food and conversation work \u2014 leading with owned table/conversation hero, then creator-first story, distinct Four Kings / Buttercup Diner / 9JaGrills proof, signature Chotto Matte hosted moment, Rebuilding the Beast archive, and direct inquiry, using only traceable facts.",
+    "visual_direction": "Derive from Festus record only: image-led, hospitality-forward, centered on creator at restaurant tables, shared meals, and owner conversations in Bay Area restaurant settings with basketball archive and Nigerian heritage as support. Restrained, coherent, high-craft execution with no template or reference-build styling and no invented imagery.",
+    "voice": "First person as Festus, short plain confident. Allowed sources only: Festus Feasts, Rebuilding the Beast, Dine with an NBA Champion, conversation at the table, family behind the business, Hidden Heat in Chinatown: Four Kings Delivers a Royal Feast, the family behind Buttercup Diner, Nigerian cooking and a conversation at the table, plus bio facts. Strip agency-speak and hype; invent no quotes, stats, partnerships, or credentials."
+  },
+  "creator_id": "festus-feasts",
+  "schema_version": "1.0",
+  "skill_id": "creator_site_judgment"
+}

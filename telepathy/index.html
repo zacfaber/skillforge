@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TELEPATHY</title>
+<style>
+/* ---------- palette: chrome and syntax are one system; DEMON flips both ---------- */
+:root{
+  --bg:#101014; --rail:#131317; --panel:#17171c; --line:#232329; --line2:#2e2e36;
+  --txt:#cfd3dc; --dim:#7b8090; --dim2:#4a4d59; --acc:#e0a458; --grn:#9ccc8f; --red:#e5484d;
+  --sx-base:#cfd3dc; --sx-str:#9ccc8f; --sx-num:#e0a458; --sx-fn:#7aa2f7; --sx-punct:#5c6370; --sx-comment:#565f89;
+  --term:#0a0a0c; --meter-well:#0a0a0c; --veil:rgba(16,16,20,.88);
+  --mono:"SF Mono","JetBrains Mono","Cascadia Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace;
+}
+body.demon{
+  --bg:#0d0505; --rail:#110606; --panel:#170808; --line:#2c0f10; --line2:#3a1113;
+  --txt:#f0d7d7; --dim:#a97c7c; --dim2:#6e4a4a; --acc:#e5484d;
+  --sx-base:#f0d7d7; --sx-str:#e8a0a0; --sx-num:#ffb27a; --sx-fn:#ff8a8e; --sx-punct:#6e4a4a; --sx-comment:#8a5a5a;
+  --term:#070202; --meter-well:#070202; --veil:rgba(13,5,5,.88);
+}
+*{box-sizing:border-box; margin:0; padding:0; border-radius:0;}
+html,body{height:100%;}
+body{background:var(--bg); color:var(--txt); font:11px/1.4 var(--mono); overflow:hidden;
+  display:flex; flex-direction:column; -webkit-user-select:none; user-select:none;}
+button{font:inherit; color:inherit; background:none; border:0; cursor:pointer;}
+::-webkit-scrollbar{width:8px; height:8px;}
+::-webkit-scrollbar-thumb{background:var(--line2);}
+::-webkit-scrollbar-track,::-webkit-scrollbar-corner{background:transparent;}
+
+/* ---------- transport ---------- */
+#transport{flex:0 0 44px; display:flex; align-items:stretch; background:var(--panel); border-bottom:1px solid var(--line);}
+.cell{display:flex; flex-direction:column; justify-content:center; padding:0 12px; border-right:1px solid var(--line); white-space:nowrap;}
+.cell .lab{font-size:8px; letter-spacing:1.4px; color:var(--dim); text-transform:uppercase;}
+.cell .val{font-size:13px; line-height:1.3;}
+.cell .val.hot{color:var(--acc); font-weight:700;}
+#wordmark{justify-content:center; font-size:14px; font-weight:700; letter-spacing:4px;}
+#position{min-width:176px;}
+#led{display:inline-block; width:8px; height:8px; background:var(--acc); margin-right:6px;}
+#led.live{background:var(--grn);} #led.offline{background:var(--red);}
+#playLamp{display:inline-block; width:8px; height:8px; background:var(--dim2); margin-right:6px;}
+#playLamp.on{background:var(--grn);}
+#transport .fill{flex:1;}
+#tabs{display:flex; align-items:stretch; padding:0 6px;}
+.tab{padding:0 10px; font-size:11px; letter-spacing:1px; color:var(--dim); border-bottom:2px solid transparent;}
+.tab:hover{color:var(--txt);}
+.tab.active{color:var(--txt); border-bottom-color:var(--acc);}
+#editToggle.active{color:var(--grn); border-bottom-color:var(--grn);}
+
+/* ---------- three-column desk ---------- */
+#desk{flex:1; display:grid; grid-template-columns:244px minmax(0,1fr) 204px; min-height:0;}
+.railHead{flex:none; display:flex; justify-content:space-between; padding:6px 10px; font-size:9px; letter-spacing:1.6px; color:var(--dim); border-bottom:1px solid var(--line);}
+.railHead span:last-child{color:var(--dim2); letter-spacing:0;}
+
+/* channel rack */
+#rack{background:var(--rail); border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0; overflow-y:auto;}
+.ch{display:grid; grid-template-columns:18px 4px minmax(0,1fr) auto; gap:7px; align-items:center; padding:6px 8px 6px 6px; border-bottom:1px solid var(--line); cursor:pointer;}
+.ch:hover{background:var(--panel);}
+.ch.sel{background:var(--panel); box-shadow:inset 2px 0 0 var(--acc);}
+.ch .idx{font-size:10px; color:var(--dim2); text-align:right;}
+.ch .chip{height:26px;}
+.ch .nm{display:block; font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.ch .meta{display:block; font-size:9px; color:var(--dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.ch .leds{display:flex; gap:2px; margin-top:4px;}
+.ch .leds i{display:block; width:5px; height:5px; background:var(--line2);}
+.ch .leds i.hit{background:var(--dim);}
+.ch .leds i.now{background:var(--acc);}
+.ch.muted .nm,.ch.muted .meta{color:var(--dim2); text-decoration:line-through;}
+.ch.parked{opacity:.55;}
+.ch .side{display:flex; flex-direction:column; align-items:flex-end; gap:4px;}
+.mute{width:18px; height:15px; font-size:9px; line-height:13px; text-align:center; border:1px solid var(--line2); color:var(--dim);}
+.mute.on{background:var(--acc); color:var(--bg);}
+.mute.pend{border-style:dashed; border-color:var(--acc);}
+.badge{font-size:8px; letter-spacing:.8px; padding:1px 4px; border:1px solid var(--line2); color:var(--sx-str); text-transform:uppercase;}
+.badge.park{color:var(--dim);}
+
+/* ---------- center: view stack, driven by body[data-view] ---------- */
+#center{display:flex; flex-direction:column; min-width:0; min-height:0;}
+#editorView,#stageView{flex:1; min-height:0; display:none;}
+#cliWrap{flex:0 0 30%; min-height:0; display:none; border-top:1px solid var(--line);}
+body[data-view=editor] #editorView{display:flex; flex-direction:column;}
+body[data-view=editor] #cliWrap{display:flex;}
+body[data-view=stage] #stageView{display:block; position:relative;}
+body[data-view=log] #cliWrap{display:flex; flex:1; border-top:0;}
+
+/* editor */
+#code{flex:1; min-height:0; overflow:auto; background:var(--bg); font:12px/1.55 var(--mono); white-space:pre; padding:6px 0 14px; -webkit-user-select:text; user-select:text;}
+.ln{display:flex; min-width:max-content;}
+.gut{position:sticky; left:0; flex:0 0 44px; padding-right:12px; margin-right:12px; text-align:right; color:var(--dim2); background:var(--bg); border-right:1px solid var(--line); -webkit-user-select:none; user-select:none;}
+.base{color:var(--sx-base);} .str{color:var(--sx-str);} .num{color:var(--sx-num);} .fn{color:var(--sx-fn);}
+.punct,.rest{color:var(--sx-punct);} .cmt{color:var(--sx-comment); font-style:italic;}
+.ln.off span:not(.gut){color:var(--sx-comment); font-style:italic;}
+.t{transition:background-color 120ms linear, box-shadow 120ms linear;}
+.t.on{background-color:var(--hl); box-shadow:inset 0 0 0 1px var(--a); transition:none;}
+.t.sel{outline:1px solid var(--acc); outline-offset:-1px;}
+.t.pend{text-decoration:underline dashed var(--acc); text-underline-offset:3px;}
+#stageLine{display:none;}
+body[data-edit=on] .t{cursor:pointer;}
+body[data-edit=on] .t:hover{outline:1px solid var(--grn); outline-offset:-1px;}
+#status{flex:none; height:21px; line-height:20px; padding:0 10px; font-size:10px; color:var(--dim); background:var(--panel); border-top:1px solid var(--line); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+#status b{color:var(--txt); font-weight:400;}
+#mini{flex:0 0 64px; display:block; width:100%; height:64px; background:var(--term); border-top:1px solid var(--line);}
+
+/* terminal */
+#cliWrap{background:var(--term);}
+#cli{flex:1; min-width:0; overflow-y:auto; padding:6px 10px; font:12px/1.5 var(--mono); white-space:pre-wrap; word-break:break-word; color:var(--sx-base); -webkit-user-select:text; user-select:text;}
+.cl-user{color:var(--sx-str);} .cl-path{color:var(--sx-fn);} .cl-dim{color:var(--sx-punct);}
+.cl-out{color:var(--dim);} .cl-time{color:var(--sx-num);} .cl-err{color:var(--red);}
+#cursor{display:inline-block; width:.62em; height:1.1em; vertical-align:text-bottom; background:var(--sx-base); animation:blink 1.06s steps(2,jump-none) infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+/* stage: the same editor at full size, with one instrument behind it */
+#stageView{background:var(--bg); overflow:hidden;}
+#stageCanvas{position:absolute; inset:0; width:100%; height:100%; display:block;}
+#stageTag{position:absolute; right:14px; top:10px; padding:3px 8px; font-size:10px; color:var(--acc); background:var(--term); border:1px solid var(--line2);}
+#stageTag[hidden]{display:none;}
+
+body[data-view=stage] #desk{grid-template-columns:minmax(0,1fr);}
+body[data-view=stage] #rack,body[data-view=stage] #mixer{display:none;}
+body[data-view=stage] #center{position:relative;}
+body[data-view=stage] #stageView{display:block; position:absolute; inset:0;}
+body[data-view=stage] #editorView{display:flex; flex-direction:column; position:relative; z-index:1; min-height:0; pointer-events:none;}
+body[data-view=stage] #cliWrap{display:flex; position:relative; z-index:1; flex:0 0 auto; height:88px; border-top:0; background:transparent;}
+body[data-view=stage] #status,body[data-view=stage] #mini{display:none;}
+body[data-view=stage] #code{pointer-events:auto; background:none; overflow:auto; scrollbar-width:none; padding:26px 0 6px; font-size:var(--stage-font,16px); line-height:1.62;}
+body[data-view=stage] .gut{flex:0 0 3.6em; margin-right:1.4em; padding-right:1em; font-size:.72em; line-height:2.25; background:none; border-right:0; color:var(--sx-punct);}
+body[data-view=stage] .ln>span:last-child{background:var(--veil); padding:0 .4em;}
+body[data-view=stage] .ln:empty{background:none;}
+body[data-view=stage] .t{transition:background-color 120ms linear, box-shadow 120ms linear;}
+body[data-view=stage] .t.on{box-shadow:inset 0 0 0 1.5px var(--a); transition:none;}
+body[data-view=stage] #stageLine{display:block; flex:none; padding:0 0 10px 5em; font-size:13px; line-height:1.5; white-space:pre;}
+body[data-view=stage] #stageLine span{background:var(--veil);}
+body[data-view=stage] #cli{padding:8px 18px; overflow:hidden; background:none; font-size:12px;}
+body[data-view=stage] #cliLines>div,body[data-view=stage] #cliPrompt{width:max-content; max-width:100%; background:var(--veil);}
+body[data-view=stage] #transport{flex-basis:28px;}
+body[data-view=stage] #transport .lab{display:none;}
+body[data-view=stage] #transport .val{font-size:11px;}
+body[data-view=stage] #wordmark{font-size:11px; letter-spacing:3px;}
+body[data-view=stage] #position{min-width:0;}
+@media (max-width:760px){
+  body[data-view=stage] #transport .cell:not(#wordmark){display:none;}
+  body[data-view=stage] .tab{padding:0 6px; font-size:10px;}
+}
+
+/* mixer rail */
+#mixer{background:var(--rail); border-left:1px solid var(--line); display:flex; flex-direction:column; min-height:0;}
+#mixBody{flex:1; overflow-y:auto; padding:9px 10px;}
+.group{margin-bottom:12px;}
+.gl{display:flex; justify-content:space-between; margin-bottom:4px; font-size:8px; letter-spacing:1.4px; color:var(--dim);}
+.gl b{font-size:10px; letter-spacing:0; font-weight:400; color:var(--txt);}
+.meter{position:relative; height:9px; background:var(--meter-well); border:1px solid var(--line2); overflow:hidden;}
+.meter .bar{position:absolute; inset:0; transform-origin:left; background:linear-gradient(90deg,#4d7c35 0,#69c24b 60%,#d8c84a 82%,#e5484d 97%);}
+.meter .hold{position:absolute; inset:0; border-left:1px solid #fff;}
+.sub{display:flex; justify-content:space-between; margin-top:3px; font-size:10px; color:var(--dim);}
+.sub b{font-weight:400; color:var(--txt);}
+#bands{display:grid; grid-template-columns:repeat(6,1fr); gap:5px; height:118px;}
+.bcol{display:flex; flex-direction:column; align-items:center; gap:3px; min-height:0;}
+.well{position:relative; flex:1; width:15px; background:var(--meter-well); border:1px solid var(--line2); overflow:hidden;}
+.level{position:absolute; inset:0; transform-origin:bottom; background:linear-gradient(0deg,#3c5f2a 0,#69c24b 60%,#d8c84a 85%,#e5484d 100%);}
+.tick{position:absolute; inset:0; border-top:1px solid #fff;}
+.bval{font-size:8px; color:var(--dim);}
+.blab{font-size:7px; line-height:1.25; color:var(--dim); text-align:center;}
+#spectrum{display:block; width:100%; height:46px; background:var(--meter-well); border:1px solid var(--line2);}
+.kv{display:flex; justify-content:space-between; gap:8px; padding:2px 0; font-size:10px; color:var(--dim); border-bottom:1px solid var(--line);}
+.kv b{font-weight:400; color:var(--txt); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+
+/* edit request popover */
+#draft{position:fixed; z-index:60; width:236px; padding:10px; background:var(--panel); border:1px solid var(--line2);}
+#draft[hidden]{display:none;}
+#draft h4{margin-bottom:8px; font-size:9px; font-weight:400; letter-spacing:1.2px; color:var(--dim);}
+#draft label{display:block; margin:7px 0 3px; font-size:9px; color:var(--dim);}
+#draft input[type=text]{width:100%; padding:4px 6px; font:12px var(--mono); color:var(--txt); background:var(--bg); border:1px solid var(--line2); outline:none;}
+#draft input[type=range]{width:100%; accent-color:var(--acc);}
+#draftBtns{display:flex; gap:5px; margin-top:10px;}
+#draftBtns button{flex:1; padding:4px 0; font-size:10px; border:1px solid var(--line2);}
+#draftBtns button:hover{background:var(--line);}
+#draftSend{color:var(--grn);} #draftDelete{color:var(--red);}
+</style>
+</head>
+<body data-view="editor" data-edit="off">
+
+<header id="transport">
+  <div class="cell" id="wordmark">TELEPATHY</div>
+  <div class="cell"><span class="lab">Set</span><span class="val" id="tSet">NO SET</span></div>
+  <div class="cell"><span class="lab">BPM</span><span class="val hot" id="tBpm">---</span></div>
+  <div class="cell"><span class="lab">Key</span><span class="val" id="tKey">---</span></div>
+  <div class="cell" id="position"><span class="lab">Bar : Beat : Step</span><span class="val" id="tPos">- : - : -</span></div>
+  <div class="cell"><span class="lab">Transport</span><span class="val"><i id="playLamp"></i><span id="tPlay">STOPPED</span></span></div>
+  <div class="cell"><span class="lab">Audio Feed</span><span class="val"><i id="led"></i><span id="tFeed">NO FEED</span></span></div>
+  <div class="fill"></div>
+  <nav id="tabs">
+    <button class="tab" data-view="editor">EDITOR</button>
+    <button class="tab" data-view="stage">STAGE</button>
+    <button class="tab" data-view="log">LOG</button>
+    <button class="tab" id="editToggle">EDIT MODE</button>
+  </nav>
+</header>
+
+<div id="desk">
+  <aside id="rack">
+    <div class="railHead"><span>CHANNEL RACK</span><span id="rackCount"></span></div>
+    <div id="rackList"></div>
+    <div id="parkHead" class="railHead" hidden><span>PARKED</span><span id="parkCount"></span></div>
+    <div id="parkList"></div>
+  </aside>
+
+  <main id="center">
+    <section id="editorView">
+      <div id="code" spellcheck="false"></div>
+      <div id="stageLine"></div>
+      <div id="status"></div>
+      <canvas id="mini"></canvas>
+    </section>
+    <section id="stageView">
+      <canvas id="stageCanvas"></canvas>
+      <div id="stageTag">FEED OFFLINE</div>
+    </section>
+    <section id="cliWrap"><div id="cli"><div id="cliLines"></div><div id="cliPrompt"></div></div></section>
+  </main>
+
+  <aside id="mixer">
+    <div class="railHead"><span>MASTER</span><span id="mixClock"></span></div>
+    <div id="mixBody">
+      <div class="group">
+        <div class="gl"><span>RMS</span><b id="rmsDb"></b></div>
+        <div class="meter"><div class="bar" id="rmsBar"></div><div class="hold" id="rmsHold"></div></div>
+        <div class="sub"><span>rms <b id="rmsVal"></b></span><span>age <b id="feedAge"></b></span></div>
+      </div>
+      <div class="group">
+        <div class="gl"><span>PEAK</span><b id="peakDb"></b></div>
+        <div class="meter"><div class="bar" id="peakBar"></div><div class="hold" id="peakHold"></div></div>
+        <div class="sub"><span>peak <b id="peakVal"></b></span><span>hold <b id="holdVal"></b></span></div>
+      </div>
+      <div class="group">
+        <div class="gl"><span>BANDS</span><b id="bandSource"></b></div>
+        <div id="bands"></div>
+      </div>
+      <div class="group">
+        <div class="gl"><span>SPECTRUM</span><b>24 BAR</b></div>
+        <canvas id="spectrum"></canvas>
+      </div>
+      <div class="group"><div class="gl"><span>SESSION</span></div><div id="session"></div></div>
+    </div>
+  </aside>
+</div>
+
+<div id="draft" hidden>
+  <h4 id="draftTitle"></h4>
+  <label for="draftText">TEXT</label>
+  <input type="text" id="draftText" spellcheck="false" autocomplete="off">
+  <label for="draftVel">VELOCITY <span id="draftVelVal"></span></label>
+  <input type="range" id="draftVel" min="0" max="1" step="0.01">
+  <div id="draftBtns">
+    <button id="draftSend">REQUEST</button>
+    <button id="draftDelete">DELETE</button>
+    <button id="draftClose">CLOSE</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+/*
+ * TELEPATHY v2: a mirror of a live SuperCollider set. It plays nothing.
+ *
+ * The piece, in movements:
+ *   I    TUNING      every constant, named once
+ *   II   THEORY      pitch and number helpers
+ *   III  CLOCK       beat, step and bar, always derived from the anchor
+ *   IV   FEED        live.json freshness, fallback, meter ballistics
+ *   V    SCORE       state.json to code, as plain data
+ *   VI   TRANSCRIPT  events to terminal lines
+ *   VII  REQUESTS    edit requests and how they resolve
+ *   VIII MODEL       one reducer; every change in the app passes through it
+ *   IX   STAGECRAFT  how large the code can be, and which instrument shows
+ *   X    DIRECTOR    the cuts, decided bar by bar
+ *   XI   READINGS    what the instruments read from the set
+ *   -- everything above is pure; everything below touches the world --
+ *   XII  SURFACES    snapshots to DOM
+ *   XIII RAILS       the editor view's two small canvases
+ *   XIV  INSTRUMENTS the stage, drawn behind the code
+ *   XV   LOOP        the single requestAnimationFrame
+ *   XVI  WIRES       network and input, which only ever dispatch
+ */
+
+/* ========== I. TUNING ========== */
+
+const TUNING = Object.freeze({
+  stepsPerBeat: 4,
+  defaultStepsPerBar: 16,
+  feedStaleMs: 1500,        // MIRROR.md: the feed is offline after 1.5 s
+  feedPollMs: 100,          // the performer writes about 10x per second
+  heardHoldMs: 2000,
+  heardFloor: 0.001,
+  editTimeoutMs: 10000,     // MIRROR.md: unconfirmed after about 10 s
+  editPollMs: 3000,
+  statePollMs: 2500,
+  cliMaxLines: 200,
+  codeWidth: 92,            // statements break to a new line past this column
+  commentColumn: 54,
+  attackMs: 25,             // meters rise fast
+  releaseMs: 300,           // and fall at VU speed
+  peakHoldMs: 1400,
+  holdFallPerSec: 0.12,
+  readoutEveryMs: 150,      // numbers change at a readable rate
+  miniBeatsBehind: 2,
+  miniBeatsAhead: 8,
+  spectrumBars: 24,
+});
+
+const LAYER_COLORS = ['#7aa2f7','#e0a458','#9ccc8f','#f7768e','#7dcfff','#bb9af7','#73daca','#ff9e64','#c0caf5','#9ece6a','#e0af68','#2ac3de'];
+const BANDS = [
+  { label:'SUB',  hz:'60'   }, { label:'LOW',  hz:'160' }, { label:'LMID', hz:'400' },
+  { label:'MID',  hz:'1k'   }, { label:'HMID', hz:'2.5k'}, { label:'AIR',  hz:'6k'  },
+];
+const NO_BANDS = Object.freeze([0,0,0,0,0,0]);
+
+/* Which bands a layer excites when the feed is offline and state.json is all we have. */
+const FALLBACK_BANDS = { kick:[0,1], bass:[1,2], pad:[2,3], clap:[3,4], hats:[4,5], openhat:[5], shaker:[4], chop:[3,2] };
+const FALLBACK_DEFAULT = [2,3];
+
+/* ========== II. THEORY ========== */
+
+const clamp = (v, lo, hi) => v < lo ? lo : v > hi ? hi : v;
+const unit = v => clamp(v, 0, 1);
+const mod = (n, m) => ((n % m) + m) % m;
+const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+const last = list => list[list.length - 1];
+const chunk = (list, size) => list.length <= size ? [list] : [list.slice(0, size), ...chunk(list.slice(size), size)];
+const pad2 = n => String(n).padStart(2, '0');
+const clockTime = t => { const d = new Date(t); return [d.getHours(), d.getMinutes(), d.getSeconds()].map(pad2).join(':'); };
+const trimNumber = n => String(Math.round(n * 10000) / 10000);
+const toDb = v => v > 0.0004 ? (20 * Math.log10(v)).toFixed(1) + ' dB' : '-inf dB';
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const PITCH_NAMES = ['c','c#','d','d#','e','f','f#','g','g#','a','a#','b'];
+const PITCH_CLASS = { c:0, d:2, e:4, f:5, g:7, a:9, b:11 };
+const ACCIDENTAL = { '#':1, b:-1, '':0 };
+
+function textToMidi(text){
+  if (typeof text === 'number') return text;
+  if (/^\d+$/.test(String(text).trim())) return Number(text);
+  const m = String(text).trim().toLowerCase().match(/^([a-g])([#b]?)(-?\d)$/);
+  return m ? (Number(m[3]) + 1) * 12 + PITCH_CLASS[m[1]] + ACCIDENTAL[m[2]] : null;
+}
+const midiToName = midi => PITCH_NAMES[mod(midi, 12)] + (Math.floor(midi / 12) - 1);
+const midiToHz = midi => 440 * Math.pow(2, (midi - 69) / 12);
+const chordNotes = text => String(text).split(',').map(x => x.trim()).filter(Boolean);
+const tokenMidis = tok => chordNotes(tok.text).map(textToMidi).filter(m => m != null);
+
+/* MIRROR.md lets a token be a MIDI number; the code always shows a pitch name. */
+const pitchLabel = text => chordNotes(text).map(n => /^\d+$/.test(n) ? midiToName(Number(n)) : n).join(',');
+
+const layerColor = (L, i) => L.color || LAYER_COLORS[i % LAYER_COLORS.length];
+const highlightColor = color => /^#[0-9a-f]{6}$/i.test(color) ? color + '59' : color;   // 0x59 is 35 percent
+
+/* ========== III. CLOCK ==========
+   Position is always anchor + elapsed, never an accumulator, so the page cannot drift
+   from TempoClock however long it runs, and each state write re-locks it. */
+
+const spbOf = set => set.stepsPerBar || TUNING.defaultStepsPerBar;
+const cycleOf = (L, spb) => L.cycle || spb;
+const stepsOf = beat => Math.floor(beat * TUNING.stepsPerBeat);
+
+/* MIRROR.md: playing is false when stopped. An absent flag is not a stop, but a clock needs a real anchor. */
+const isRunning = set => !!set && set.playing !== false && set.anchorTime > 0;
+
+/* A broken anchor cannot say where the beat is. If audio is really sounding, run at the set's
+   tempo from when it was first heard: the phase is a guess, but silence would be the bigger lie. */
+const anchorBroken = set => !(set.anchorTime > 0);
+const withHeardClock = (set, heardSince) => set && anchorBroken(set) && heardSince != null ? { ...set, anchorTime: heardSince, freeRunning: true } : set;
+
+
+function beatAt(set, now){
+  if (!set) return 0;
+  const anchor = set.anchorBeat || 0;
+  return isRunning(set) ? anchor + (now - (set.anchorTime || 0)) / 1000 * (set.bpm || 120) / 60 : anchor;
+}
+function positionAt(beat, spb){
+  const step = stepsOf(beat);
+  const beatsPerBar = spb / TUNING.stepsPerBeat;
+  return { bar: Math.floor(step / spb) + 1, beat: Math.floor(mod(beat, beatsPerBar)) + 1, step: mod(step, spb) + 1 };
+}
+function chordAt(set, beat){
+  const cycle = set.chordCycle || [];
+  return cycle.length ? cycle[mod(Math.floor(beat / 8), cycle.length)] : null;   // two bars per chord
+}
+
+/* Every occurrence of a layer's tokens between two beats, for the falling-note surfaces. */
+function hitsBetween(L, spb, fromBeat, toBeat){
+  const cycleBeats = cycleOf(L, spb) / TUNING.stepsPerBeat;
+  return (L.tokens || []).flatMap(tok => {
+    const offset = tok.step / TUNING.stepsPerBeat;
+    const firstN = Math.ceil((fromBeat - offset) / cycleBeats);
+    const lastN = Math.floor((toBeat - offset) / cycleBeats);
+    return Array.from({ length: Math.max(0, lastN - firstN + 1) }, (_, i) => ({ tok, beat: offset + (firstN + i) * cycleBeats }));
+  });
+}
+
+/* ========== IV. FEED ==========
+   live.json is measured audio and outranks everything. When it goes stale the desk
+   says so and falls back to what state.json implies, clearly labelled. */
+
+const feedStatus = (live, now) => !live ? 'none' : now - live.ts <= TUNING.feedStaleMs ? 'live' : 'offline';
+
+function fallbackBands(set, beat){
+  if (!set) return NO_BANDS;
+  const step = stepsOf(beat);
+  const spb = spbOf(set);
+  return (set.layers || []).filter(L => !L.muted).reduce((bands, L) => {
+    const here = mod(step, cycleOf(L, spb));
+    const tok = (L.tokens || []).find(t => t.step === here);
+    if (!tok) return bands;
+    const energy = tok.vel == null ? 0.5 : tok.vel;
+    (FALLBACK_BANDS[L.id] || FALLBACK_DEFAULT).forEach((band, rank) => {
+      bands[band] = Math.max(bands[band], energy * (rank ? 0.55 : 0.9));
+    });
+    return bands;
+  }, NO_BANDS.slice());
+}
+
+function meterTargets(live, status, set, beat){
+  if (status === 'live') return { bands: live.bands || NO_BANDS, rms: live.rms || 0, peak: live.peak || 0 };
+  const bands = fallbackBands(set, beat);
+  return { bands, rms: unit(bands.reduce((a, b) => a + b, 0) * 0.22), peak: unit(Math.max(...bands) * 0.9) };
+}
+
+/* One-pole ballistics: time constants in ms, so meters feel the same at any frame rate. */
+const follow = (value, target, dt) => {
+  const tau = target > value ? TUNING.attackMs : TUNING.releaseMs;
+  return value + (unit(target) - value) * (1 - Math.exp(-dt / tau));
+};
+
+/* Peak hold: stay put for the hold time, then fall at a constant rate. */
+function followHold(hold, value, nowMs, dt){
+  if (value >= hold.level) return { level: value, at: nowMs };
+  if (nowMs - hold.at < TUNING.peakHoldMs) return hold;
+  return { level: Math.max(value, hold.level - TUNING.holdFallPerSec * dt / 1000), at: hold.at };
+}
+
+/* Between measured bands the curve is smooth, and it stops at the edges: no invented detail. */
+function bandAt(bands, u){
+  const pos = unit(u) * (bands.length - 1);
+  const i = Math.min(Math.floor(pos), bands.length - 2);
+  const f = pos - i;
+  const s = f * f * (3 - 2 * f);
+  return bands[i] * (1 - s) + bands[i + 1] * s;
+}
+const interpolateBands = (bands, count) => Array.from({ length: count }, (_, x) => bandAt(bands, x / (count - 1)));
+
+const initialSignal = () => ({
+  ms: 0, bands: NO_BANDS.slice(), rms: 0, peak: 0,
+  rmsHold: { level: 0, at: 0 }, peakHold: { level: 0, at: 0 },
+  bandHolds: NO_BANDS.map(() => ({ level: 0, at: 0 })),
+});
+
+/* (signal, targets, time) to next signal. The per-frame state of the desk, as a value. */
+function nextSignal(prev, targets, nowMs){
+  const dt = clamp(nowMs - prev.ms, 0, 250);
+  const bands = prev.bands.map((v, i) => follow(v, targets.bands[i] || 0, dt));
+  const rms = follow(prev.rms, targets.rms, dt);
+  const peak = follow(prev.peak, targets.peak, dt);
+  return {
+    ms: nowMs, bands, rms, peak,
+    rmsHold: followHold(prev.rmsHold, rms, nowMs, dt),
+    peakHold: followHold(prev.peakHold, peak, nowMs, dt),
+    bandHolds: prev.bandHolds.map((h, i) => followHold(h, bands[i], nowMs, dt)),
+  };
+}
+
+/* ========== V. SCORE ==========
+   State in, code out, as plain data: a document is lines, a line is segments, and a
+   segment may carry a token key. Nothing here knows the DOM exists.
+
+   The output is written to be valid Strudel with the same timing as the set:
+   one cycle is one bar, setcps(bpm/60/4). A pattern string divides its cycle evenly, so a
+   layer is reduced to the coarsest grid that holds all its steps: four on the floor
+   is "bd bd bd bd", offbeat hats are "~ hh ~ hh ~ hh ~ hh". Cycles longer than a bar
+   get .slow(n), and multi-bar patterns use backticks so one bar can sit on one line. */
+
+const tokenKey = (layerId, step) => layerId + '|' + step;
+const MUTE_STEP = -1;                                  // a mute request sits on the $: label
+
+const seg = (cls, text, key, rest) => ({ cls, text, key, rest: !!rest });
+const punct = text => seg('punct', text);
+const comment = text => [seg('cmt', text)];
+const lineWidth = line => line.reduce((n, s) => n + s.text.length, 0);
+
+/* How each kind of layer speaks: the pattern function, the token label, the synth chain. */
+const VOICES = {
+  drum:  { fn: 's',    label: tok => String(tok.text), synth: false },
+  note:  { fn: 'note', label: tok => pitchLabel(tok.text), synth: true },
+  chord: { fn: 'note', label: tok => pitchLabel(tok.text), synth: true },
+};
+
+/* Per-token numbers that travel as patterns of their own, aligned with the notes. */
+const TOKEN_ROWS = [
+  { fn: 'velocity', value: () => tok => tok.vel },
+  { fn: 'clip',     value: stride => tok => tok.dur == null ? undefined : tok.dur / stride },
+  { fn: 'late',     value: () => tok => tok.nudge == null ? undefined : tok.nudge / TUNING.stepsPerBeat },
+];
+
+const STRUCTURAL_PARAMS = new Set(['pdef', 's', 'gain']);
+
+function liveTokens(L, spb){
+  const cycle = cycleOf(L, spb);
+  return (L.tokens || []).filter(t => Number.isFinite(t.step)).map(t => ({ ...t, step: mod(Math.floor(t.step), cycle) }));
+}
+
+/* The coarsest even grid that contains every token; Edit Mode opens the full step grid. */
+function layerGrid(L, spb, fullGrid){
+  const cycle = cycleOf(L, spb);
+  const tokens = liveTokens(L, spb);
+  const stride = fullGrid ? 1 : tokens.reduce((g, t) => gcd(g, t.step), cycle);
+  const slots = Array.from({ length: cycle / stride }, (_, i) => {
+    const step = i * stride;
+    return { step, tokens: tokens.filter(t => t.step === step) };
+  });
+  const wrapped = cycle > spb && slots.length > 1;
+  const perLine = wrapped ? Math.max(2, Math.ceil(spb / stride)) : slots.length;
+  return { cycle, stride, slots, perLine, wrapped, tokens };
+}
+
+/* A slot as segments. An interactive layer gives every slot a key; rests keep theirs so they can be filled. */
+function slotSegments(slot, layerId, cls, textOf){
+  const key = layerId == null ? undefined : tokenKey(layerId, slot.step);
+  const present = slot.tokens.map(textOf).filter(v => v != null);
+  if (!present.length) return [seg('rest', '~', key, true)];
+  const voices = present.map(text => seg(cls, String(text), key));
+  if (voices.length === 1) return voices;
+  return [punct('['), ...voices.flatMap((v, i) => i ? [punct(','), v] : [v]), punct(']')];
+}
+
+/* A pattern string as one or more lines, each slot aligned to its neighbours. */
+function patternLines(grid, layerId, cls, textOf){
+  const quote = seg('str', grid.wrapped ? '`' : '"');
+  const rows = chunk(grid.slots, grid.perLine).map(row =>
+    row.flatMap((slot, i) => [...(i ? [seg('str', ' ')] : []), ...slotSegments(slot, layerId, cls, textOf)]));
+  rows[0].unshift(quote);
+  last(rows).push(quote);
+  return rows;
+}
+
+/* A method call as a piece: its lines, with continuation rows aligned under the first. */
+function methodPiece(head, rows){
+  const open = [...head, punct('(')];
+  const indent = seg('base', ' '.repeat(lineWidth(open)));
+  const lines = rows.map((row, i) => i ? [indent, ...row] : [...open, ...row]);
+  last(lines).push(punct(')'));
+  return lines;
+}
+const dotted = fn => [punct('.'), seg('fn', fn)];
+const callPiece = (fn, args) => methodPiece(dotted(fn), [args]);
+const quoted = value => typeof value === 'number' ? seg('num', trimNumber(value)) : seg('str', '"' + value + '"');
+
+/* One token row: a single number when every token agrees, a pattern when they differ. */
+function tokenRowPiece(row, grid, layerId, compact){
+  const valueOf = row.value(grid.stride);
+  const values = grid.tokens.map(valueOf).filter(v => v != null);
+  if (!values.length) return [];
+  if (values.length === grid.tokens.length && values.every(v => v === values[0]))
+    return [callPiece(row.fn, [quoted(values[0])])];
+  if (compact) return [];
+  const textOf = tok => { const v = valueOf(tok); return v == null ? null : trimNumber(v); };
+  return [methodPiece(dotted(row.fn), patternLines(grid, layerId, 'num', textOf))];
+}
+
+const labelSegment = layerId => seg('base', '$:', layerId == null ? undefined : tokenKey(layerId, MUTE_STEP));
+
+/* Pieces, in the order a Strudel player would write them. */
+function statementPieces(L, grid, spb, layerId, compact){
+  const voice = VOICES[L.kind] || VOICES.note;
+  const params = L.params || {};
+  const head = [labelSegment(layerId), seg('base', ' '), seg('fn', voice.fn)];
+  const extras = Object.keys(params).filter(k => !STRUCTURAL_PARAMS.has(k) && ['number','string'].includes(typeof params[k]));
+  return [
+    methodPiece(head, patternLines(grid, layerId, 'str', voice.label)),
+    ...(voice.synth && params.s ? [callPiece('s', [quoted(params.s)])] : []),
+    ...TOKEN_ROWS.flatMap(row => tokenRowPiece(row, grid, layerId, compact)),
+    ...(params.gain != null ? [callPiece('gain', [quoted(params.gain)])] : []),
+    ...extras.map(k => callPiece(k, [quoted(params[k])])),
+    ...(grid.cycle !== spb ? [callPiece('slow', [quoted(grid.cycle / spb)])] : []),
+  ];
+}
+
+/* Pour pieces into lines: short calls chain on, long or multi-line ones take their own line. */
+function flowPieces(pieces){
+  const indent = seg('base', '  ');
+  return pieces.reduce((lines, piece, i) => {
+    const current = last(lines);
+    const fits = piece.length === 1 && lineWidth(current) + lineWidth(piece[0]) <= TUNING.codeWidth;
+    if (i === 0) return piece.map(l => l.slice());
+    if (fits) return [...lines.slice(0, -1), [...current, ...piece[0]]];
+    return [...lines, ...piece.map(l => [indent, ...l])];
+  }, [[]]);
+}
+
+/* On the statement's last line, because a backtick string would swallow it anywhere earlier. */
+function withTrailingComment(lines, text){
+  const end = last(lines);
+  const gap = Math.max(2, TUNING.commentColumn - lineWidth(end));
+  return [...lines.slice(0, -1), [...end, seg('base', ' '.repeat(gap)), seg('cmt', '// ' + text)]];
+}
+
+const layerTag = L => [L.id, (L.params && (L.params.s || L.params.pdef)) || L.kind].filter(Boolean).join(' · ');
+const echoSteps = L => (L.tokens || []).filter(t => t.echo).map(t => t.step);
+
+function layerComment(L){
+  const echoes = echoSteps(L);
+  return [layerTag(L), ...(L.muted ? ['muted'] : []), ...(echoes.length ? ['echo on ' + echoes.join(' ')] : [])].join(' · ');
+}
+
+/* One layer to lines, with a tone: 'on' sounds, 'off' is commented out. */
+function layerLines(L, index, spb, { interactive, fullGrid, compact }){
+  const layerId = interactive ? L.id : null;
+  const grid = layerGrid(L, spb, fullGrid);
+  const silent = !grid.tokens.length && !fullGrid;
+  const lines = silent
+    ? [[labelSegment(layerId), seg('base', ' '), seg('fn', 'silence')]]
+    : flowPieces(statementPieces(L, grid, spb, layerId, compact));
+  const commented = withTrailingComment(lines, layerComment(L));
+  const off = L.muted || !interactive;
+  const accent = layerColor(L, index);
+  return commented.map(segments => ({
+    segments: off ? [seg('cmt', '// '), ...segments] : segments,
+    layer: L.id, off, accent, highlight: highlightColor(accent),
+  }));
+}
+
+/* For each step of a cycle, the token keys sounding on it. Lookup at play time is O(1). */
+function onsetTable(L, spb){
+  const cycle = cycleOf(L, spb);
+  const table = Array.from({ length: cycle }, () => []);
+  if (L.muted) return table;
+  liveTokens(L, spb).forEach(tok => {
+    const start = tok.step + Math.floor((tok.nudge || 0) * TUNING.stepsPerBeat);
+    const hold = clamp(Math.round(tok.dur || 1), 1, cycle);
+    for (let d = 0; d < hold; d++) table[mod(start + d, cycle)].push(tokenKey(L.id, tok.step));
+  });
+  return table;
+}
+
+function headerLines(set){
+  const bpm = set.bpm || 120;
+  return [
+    comment('// TELEPATHY · ' + (set.set || 'UNTITLED') + ' · ' + bpm + ' BPM · ' + (set.key || 'no key')),
+    comment('// conducted live · every line below is the set, nothing is decoration'),
+    comment('// a rendering of state.json: the sound is SuperCollider, this page plays nothing'),
+    comment('// setcps(' + bpm + '/60/4)' + (isRunning(set) ? '' : ' · stopped')),
+    ...((set.chordCycle || []).length ? [comment('// chords: ' + set.chordCycle.join(' '))] : []),
+  ].map(segments => ({ segments, layer: null, off: false, highlight: null }));
+}
+
+const blankLine = () => ({ segments: [], layer: null, off: false, highlight: null });
+const plainLine = text => ({ segments: comment(text), layer: null, off: false, highlight: null });
+
+function renderDocument(set, editMode, compact){
+  const spb = spbOf(set);
+  const layers = set.layers || [];
+  const parked = set.parked || [];
+  const body = layers.flatMap((L, i) => layerLines(L, i, spb, { interactive: true, fullGrid: editMode, compact }));
+  const parkedBody = parked.flatMap((L, i) => layerLines(L, i, spb, { interactive: false, fullGrid: false }));
+  return {
+    lines: [
+      ...headerLines(set), blankLine(),
+      ...(body.length ? body : [plainLine('// no layers yet')]),
+      ...(compact ? [] : parked.length ? [blankLine(), plainLine('// PARKED'), ...parkedBody] : []),
+    ],
+    onsets: layers.map(L => ({ id: L.id, cycle: cycleOf(L, spb), table: onsetTable(L, spb) })),
+  };
+}
+
+/* A rewrite re-renders only when the score changed: anchors and events do not touch the code. */
+const scoreSignature = (set, editMode, compact) => JSON.stringify([
+  editMode, compact, set.set, set.bpm, set.key, isRunning(set), set.stepsPerBar, set.chordCycle, set.layers, set.parked,
+]);
+
+const tokenValues = set => new Map((set.layers || []).flatMap(L =>
+  (L.tokens || []).map(t => [tokenKey(L.id, t.step), String(t.text) + '@' + t.vel])));
+
+const changedTokens = (before, after) => [...new Set([...before.keys(), ...after.keys()])]
+  .filter(key => before.get(key) !== after.get(key));
+
+/* ========== VI. TRANSCRIPT ==========
+   Zac's words are shell input. The system answers as output. Edits are timestamped. */
+
+const SPOKEN_KINDS = new Set(['call', 'verdict']);
+const humanOf = set => (set && set.human) || 'Zac';
+const eventId = ev => [ev.t, ev.kind, ev.text].join('|');
+const typed = text => ({ kind: 'input', text });
+const printed = text => ({ kind: 'output', text });
+const stamp = (text, t) => ({ kind: 'stamp', text, t });
+const failure = (text, t) => ({ kind: 'error', text, t });
+
+/* "Zac: love this" was typed as "love this". */
+function speech(text, human){
+  const said = String(text);
+  const speaker = human.toLowerCase() + ':';
+  return said.toLowerCase().startsWith(speaker) ? said.slice(speaker.length).trimStart() : said;
+}
+
+function eventEntry(ev, human){
+  if (SPOKEN_KINDS.has(ev.kind)) return typed(speech(ev.text, human));
+  return ev.kind === 'edit' ? stamp(ev.text, ev.t) : printed(ev.text);
+}
+
+/* ========== VII. REQUESTS ==========
+   An edit is a request, never a fact. It stays pending until state.json answers:
+   by id, by the token matching the request, by rejection, or by timing out. */
+
+const editKey = edit => tokenKey(edit.layer, edit.step == null ? MUTE_STEP : edit.step);
+
+function composeEdit(fields, set, id, now){
+  const desc = fields.op === 'mute'
+    ? fields.layer + ' mute -> ' + fields.muted
+    : fields.op === 'delete'
+      ? fields.layer + ' step ' + fields.step + ' deleted'
+      : fields.layer + ' step ' + fields.step + ' -> ' + fields.text + ' ' + fields.vel.toFixed(2);
+  const by = humanOf(set);
+  return { ...fields, id, by, note: by + ' edited: ' + desc, session: { bpm: set.bpm, key: set.key }, t: now };
+}
+const describeEdit = edit => String(edit.note || edit.op).replace(/^.*? edited: /, '');
+
+function matchesRequest(edit, set){
+  const L = (set.layers || []).find(x => x.id === edit.layer);
+  if (!L) return false;
+  if (edit.op === 'mute') return !!L.muted === !!edit.muted;
+  const tok = (L.tokens || []).find(t => t.step === edit.step);
+  if (edit.op === 'delete') return !tok;
+  return !!tok && String(tok.text) === String(edit.text) && Math.abs((tok.vel || 0) - (edit.vel || 0)) < 0.005;
+}
+
+function editOutcome(edit, set, now){
+  if ((set.editsApplied || []).includes(edit.id)) return { status: 'confirmed' };
+  const rejected = (set.editsRejected || []).find(r => r && r.id === edit.id);
+  if (rejected) return { status: 'declined', reason: rejected.reason || 'declined' };
+  if (matchesRequest(edit, set)) return { status: 'confirmed' };
+  if (now - (edit.t || now) > TUNING.editTimeoutMs) return { status: 'unconfirmed' };
+  return null;
+}
+
+const OUTCOME_ENTRY = {
+  confirmed:   (edit, _, now) => stamp('edit confirmed: ' + describeEdit(edit), now),
+  declined:    (edit, o, now) => failure('edit declined: ' + describeEdit(edit) + ' · ' + o.reason, now),
+  unconfirmed: (edit, _, now) => failure('edit not confirmed: ' + describeEdit(edit), now),
+};
+const OUTCOME_FLASH = { confirmed: 'good', declined: 'bad', unconfirmed: 'bad' };
+
+/* ========== VIII. MODEL ==========
+   One immutable snapshot of the app. Every action makes a new one; the render loop
+   compares references and paints what moved. The terminal and the flashes are
+   sequenced logs, so a painter only has to ask what is newer than it last drew. */
+
+const initialModel = Object.freeze({
+  set: null, live: null, feed: 'none', link: 'connecting',
+  section: 'MAIN', scene: null,
+  view: 'editor', editMode: false, selection: null,
+  doc: null, signature: '', tokens: null,
+  pending: [], closedEdits: new Set(),
+  seenEvents: new Set(),
+  cli: [], cliSeq: 0,
+  flashes: [], flashSeq: 0,
+  stageCue: 0, autoDrift: true, lastInputAt: 0,
+  heardSince: null, heardAt: 0, rawSet: null,
+});
+
+function appendCli(m, entries){
+  if (!entries.length) return m;
+  const numbered = entries.map((entry, i) => ({ ...entry, seq: m.cliSeq + i + 1 }));
+  return { ...m, cli: [...m.cli, ...numbered].slice(-TUNING.cliMaxLines), cliSeq: m.cliSeq + entries.length };
+}
+function appendFlashes(m, flashes){
+  if (!flashes.length) return m;
+  const numbered = flashes.map((flash, i) => ({ ...flash, seq: m.flashSeq + i + 1 }));
+  return { ...m, flashes: [...m.flashes, ...numbered].slice(-64), flashSeq: m.flashSeq + flashes.length };
+}
+
+/* Resolve whatever state.json (or the clock) has answered. */
+function settleEdits(m, now){
+  if (!m.set || !m.pending.length) return m;
+  const settled = m.pending.map(edit => ({ edit, outcome: editOutcome(edit, m.set, now) }));
+  const done = settled.filter(s => s.outcome);
+  if (!done.length) return m;
+  const next = {
+    ...m,
+    pending: settled.filter(s => !s.outcome).map(s => s.edit),
+    closedEdits: new Set([...m.closedEdits, ...done.map(s => s.edit.id)]),
+  };
+  return appendFlashes(
+    appendCli(next, done.map(s => OUTCOME_ENTRY[s.outcome.status](s.edit, s.outcome, now))),
+    done.map(s => ({ key: editKey(s.edit), tone: OUTCOME_FLASH[s.outcome.status] })));
+}
+
+/* Feed, section and scene transitions, narrated once each. */
+function observeFeed(m, now){
+  const feed = feedStatus(m.live, now);
+  const section = (m.live && m.live.section) || m.section;
+  const scene = m.live ? m.live.scene || null : m.scene;
+  if (feed === m.feed && section === m.section && scene === m.scene) return m;
+  const said = [
+    ...(feed !== m.feed && feed === 'live' ? ['feed live · ' + (m.live.layers == null ? '?' : m.live.layers) + ' layers'] : []),
+    ...(feed !== m.feed && feed === 'offline' ? ['feed offline · meters on state choreography'] : []),
+    ...(section !== m.section ? ['section ' + section] : []),
+    ...(scene && scene !== m.scene ? ['scene ' + scene] : []),
+  ];
+  return appendCli({ ...m, feed, section, scene }, said.map(printed));
+}
+
+/* Silence must last a moment before it counts: a breakdown is not a stop. */
+function hearAudio(m, loud, now){
+  const heardAt = loud ? now : m.heardAt;
+  const hearing = now - heardAt < TUNING.heardHoldMs;
+  const heardSince = !hearing ? null : m.heardSince == null ? now : m.heardSince;
+  if (heardSince === m.heardSince) return { ...m, heardAt };
+  const next = withDocument({ ...m, heardAt, heardSince, set: m.rawSet ? withHeardClock(m.rawSet, heardSince) : m.set });
+  const freed = next.set && next.set.freeRunning;
+  return appendCli(next, freed && heardSince != null ? [printed('clock anchor unusable · running from heard audio, phase is a guess')] : []);
+}
+
+/* The score follows the view: STAGE reads the compact form, unless a token is being edited. */
+function withDocument(m){
+  if (!m.set) return m;
+  const compact = m.view === 'stage' && !m.editMode;
+  const signature = scoreSignature(m.set, m.editMode, compact);
+  return signature === m.signature ? m : { ...m, signature, doc: renderDocument(m.set, m.editMode, compact) };
+}
+
+const ACTIONS = {
+  /* a state.json snapshot arrived */
+  state(m, { snapshot: written, now }){
+    const snapshot = withHeardClock(written, m.heardSince);
+    const human = humanOf(snapshot);
+    const fresh = (snapshot.events || []).filter(ev => !m.seenEvents.has(eventId(ev)));
+    const tokens = tokenValues(snapshot);
+    const transport = m.set && isRunning(m.set) !== isRunning(snapshot)
+      ? [printed(isRunning(snapshot) ? 'transport running' : 'transport stopped')] : [];
+    const next = withDocument({
+      ...m, set: snapshot, rawSet: written, tokens,
+      seenEvents: new Set([...m.seenEvents, ...fresh.map(eventId)]),
+    });
+    const changed = m.tokens ? changedTokens(m.tokens, tokens) : [];
+    if (m.set && layersMoved(m.set, snapshot)) next.stageCue = m.stageCue + 1;
+    return settleEdits(
+      appendFlashes(appendCli(next, [...fresh.map(ev => eventEntry(ev, human)), ...transport]),
+        changed.map(key => ({ key, tone: 'good' }))), now);
+  },
+  /* a live.json sample arrived */
+  live(m, { sample, loud, now }){
+    return observeFeed(hearAudio({ ...m, live: sample }, loud, now), now);
+  },
+  /* the event stream opened or dropped */
+  link(m, { link }){
+    if (link === m.link) return m;
+    const said = link === 'up' ? 'connected · watching state.json' : 'event stream lost · retrying';
+    return appendCli({ ...m, link }, [printed(said)]);
+  },
+  /* time passed: the only things time can do on its own */
+  tick(m, { now }){
+    const settled = settleEdits(observeFeed(m, now), now);
+    return shouldDrift(settled, now) ? withDocument({ ...settled, view: 'stage' }) : settled;
+  },
+  /* the owner picked a view; choosing anything but STAGE ends auto drift for this session */
+  view(m, { view }){
+    return withDocument({ ...m, view, autoDrift: view === 'stage' ? m.autoDrift : false });
+  },
+  /* someone touched the page */
+  input(m, { now }){
+    return { ...m, lastInputAt: now };
+  },
+  editMode(m){
+    const editMode = !m.editMode;
+    return withDocument({ ...m, editMode, view: editMode ? 'editor' : m.view });
+  },
+  select(m, { selection }){
+    return { ...m, selection };
+  },
+  /* the page asked the performer for something */
+  editSent(m, { edit }){
+    const said = [typed('edit ' + describeEdit(edit)), printed('requested · not live until the performer confirms')];
+    return appendCli({ ...m, pending: [...m.pending, edit] }, said);
+  },
+  editFailed(m, { edit, reason, now }){
+    return appendFlashes(
+      appendCli({ ...m, pending: m.pending.filter(e => e.id !== edit.id) }, [failure('edit not sent: ' + describeEdit(edit) + ' · ' + reason, now)]),
+      [{ key: editKey(edit), tone: 'bad' }]);
+  },
+  /* a page-side refusal that never reached the server */
+  refused(m, { text, now }){
+    return appendCli(m, [failure(text, now)]);
+  },
+  /* edits.json, the safety net: pick up fresh requests this page is not tracking (a reload, another tab) */
+  editLog(m, { edits, now }){
+    const tracked = new Set(m.pending.map(e => e.id));
+    const unknown = edits.filter(e => !tracked.has(e.id) && !m.closedEdits.has(e.id)
+      && now - (e.receivedAt || e.t || 0) < TUNING.editTimeoutMs);
+    return unknown.length ? settleEdits({ ...m, pending: [...m.pending, ...unknown] }, now) : m;
+  },
+};
+
+const reduce = (m, action) => ACTIONS[action.type](m, action);
+
+/* Words for the status line. */
+function layerById(set, id){
+  return set ? [...(set.layers || []), ...(set.parked || [])].find(L => L.id === id) || null : null;
+}
+function describeSelection(set, selection){
+  const L = selection && layerById(set, selection.layer);
+  if (!L) return { head: 'click any token', tail: 'the code is the set' };
+  const about = [L.plain, L.calledFor ? 'called for: "' + L.calledFor + '"' : '', L.verdict].filter(Boolean).join(' · ');
+  const tok = selection.step == null ? null : (L.tokens || []).find(t => t.step === selection.step);
+  if (selection.step == null) return { head: L.name, tail: about };
+  const where = L.id + ' step ' + (selection.step + 1) + '/' + cycleOf(L, spbOf(set));
+  if (!tok) return { head: where + ' rest', tail: about };
+  const midis = tokenMidis(tok);
+  const hz = midis.length === 1 ? ' · ' + midiToHz(midis[0]).toFixed(1) + ' Hz' : '';
+  const gain = (L.params && L.params.gain != null) ? L.params.gain : 1;
+  const amp = tok.vel == null ? '' : ' · vel ' + trimNumber(tok.vel) + ' × gain ' + trimNumber(gain) + ' = amp ' + trimNumber(tok.vel * gain);
+  return { head: where + ' · ' + pitchLabel(tok.text) + hz + amp, tail: about };
+}
+
+function sessionRows(m, beat, live){
+  const set = m.set || {};
+  const v = x => x == null || x === '' ? '---' : x;
+  return [
+    ['chord', chordAt(set, beat)], ['section', m.section], ['scene', m.scene],
+    ['texture', live && live.texture], ['layers', live && live.layers != null ? live.layers : (set.layers || []).length],
+    ['human', humanOf(set)],
+  ].map(([k, x]) => [k, v(x)]);
+}
+
+/* ========== IX. STAGECRAFT ==========
+   STAGE is the editor at full size with an instrument behind it. Nothing here draws:
+   it decides how large the code can be set, and which instrument the room sees. */
+
+const STAGE = Object.freeze({
+  phraseBars: 8,
+  maxHoldBars: 16,
+  driftIdleMs: 90000,
+  minFont: 11,
+  maxFont: 30,
+  charWidth: 0.602,         // advance of a monospace glyph, in ems
+  lineHeight: 1.62,
+  gutterEms: 5,
+  sideMargin: 40,
+  terminalRows: 4,
+  typeCharsPerSec: 38,
+  rollBars: 4,
+  rollPlayhead: 0.618,      // the present sits on the golden section
+  cardBars: 2,
+  spiralTurns: 4,
+});
+
+/* Each instrument is a real Strudel visual, and each shows as the line of code that would call it. */
+const VISUALS = Object.freeze([
+  { name: 'pianoroll',  call: 'pianoroll({ cycles: 4 })' },
+  { name: 'punchcard',  call: 'punchcard()' },
+  { name: 'spiral',     call: 'spiral()' },
+  { name: 'pitchwheel', call: 'pitchwheel()' },
+  { name: 'spectrum',   call: 'spectrum()' },
+]);
+
+/* The largest size at which the whole set still fits the window. */
+function fitCode(doc, w, h){
+  const columns = Math.max(1, ...doc.lines.map(line => lineWidth(line.segments)));
+  const byWidth = (w - STAGE.sideMargin * 2) / (columns * STAGE.charWidth + STAGE.gutterEms);
+  const byHeight = h / (doc.lines.length * STAGE.lineHeight);
+  return clamp(Math.floor(Math.min(byWidth, byHeight)), STAGE.minFont, STAGE.maxFont);
+}
+
+/* A stable number in 0..1 for this seed and count: the show's only source of chance. */
+function seeded(seed, n){
+  let x = 2166136261;
+  for (const ch of String(seed) + ':' + n) x = Math.imul(x ^ ch.charCodeAt(0), 16777619);
+  x ^= x >>> 13; x = Math.imul(x, 1597334677); x ^= x >>> 16;
+  return (x >>> 0) / 4294967296;
+}
+
+/* ========== X. DIRECTOR ==========
+   Calls the cuts between instruments. It has no timers: it reads the facts of each new
+   bar, so the same set always gives the same show. Cuts land on bar lines, and hold
+   for whole phrases unless the music changes shape. */
+
+const initialDirection = () => ({
+  bar: 0, section: 'MAIN', visual: 'pianoroll', previous: null, cutBar: 0, hold: STAGE.phraseBars, stageCue: 0,
+});
+
+function nextVisual(prev, f){
+  const pool = VISUALS.map(v => v.name).filter(name => name !== prev.visual && name !== prev.previous);
+  return pool[Math.floor(seeded(f.seed, f.bar) * pool.length)];
+}
+
+function nextDirection(prev, f){
+  if (f.bar === prev.bar) return prev;
+  if (prev.bar === 0 || f.bar < prev.bar)                 // first bar seen, or the clock restarted
+    return { ...prev, bar: f.bar, section: f.section, cutBar: f.bar, stageCue: f.stageCue };
+  const held = f.bar - prev.cutBar;
+  const shaped = (f.section !== prev.section || f.stageCue > prev.stageCue) && held >= 1;
+  const due = held >= prev.hold;
+  const base = { ...prev, bar: f.bar, section: f.section, stageCue: f.stageCue };
+  if (!shaped && !due) return base;
+  return {
+    ...base, visual: nextVisual(prev, f), previous: prev.visual, cutBar: f.bar,
+    hold: seeded(f.seed, f.bar + 1) < 0.5 ? STAGE.phraseBars : STAGE.maxHoldBars,
+  };
+}
+
+const stageFacts = (m, beat) => ({
+  bar: m.set ? positionAt(beat, spbOf(m.set)).bar : 0,
+  section: m.section, stageCue: m.stageCue, seed: (m.set && m.set.set) || 'telepathy',
+});
+
+/* The structure of the set changed: layers came, went, or fell silent. */
+function layersMoved(before, after){
+  const key = set => (set.layers || []).map(L => L.id + (L.muted ? '/m' : '')).join();
+  return key(before) !== key(after);
+}
+
+const shouldDrift = (m, now) => m.autoDrift && m.view !== 'stage' && !m.editMode && !m.pending.length
+  && isRunning(m.set) && now - m.lastInputAt >= STAGE.driftIdleMs;
+
+/* ========== XI. READINGS ==========
+   What the instruments read from the set: real tokens, real pitches, nothing else. */
+
+const SPELLED = ['c','db','d','eb','e','f','gb','g','ab','a','bb','b'];   // flats, as the set writes them
+
+/* How long a token rings, in beats. Chords hold until the next chord, notes for up to a beat. */
+function ringBeats(L, tok, spb){
+  if (tok.dur != null) return tok.dur / TUNING.stepsPerBeat;
+  if (L.kind === 'drum') return 1 / TUNING.stepsPerBeat;
+  const cycle = cycleOf(L, spb);
+  const later = (L.tokens || []).map(t => mod(t.step - tok.step - 1, cycle) + 1);
+  const gap = Math.min(...later);
+  return (L.kind === 'chord' ? gap : Math.min(gap, TUNING.stepsPerBeat)) / TUNING.stepsPerBeat;
+}
+
+/* Rows for the roll: drums along the floor, pitches rising above them. */
+function rollRows(set){
+  const live = (set.layers || []).filter(L => !L.muted);
+  const drums = [...new Set(live.filter(L => L.kind === 'drum').flatMap(L => (L.tokens || []).map(t => 'd:' + t.text)))];
+  const pitches = [...new Set(live.filter(L => L.kind !== 'drum').flatMap(L => (L.tokens || []).flatMap(tokenMidis)))].sort((a, b) => a - b);
+  return new Map([...drums, ...pitches].map((key, i) => [key, i]));
+}
+
+/* The notes ringing right now, as pitch classes with their layer's index. */
+function ringingNotes(set, beat){
+  const spb = spbOf(set);
+  return (set.layers || []).flatMap((L, index) => L.muted ? [] :
+    hitsBetween(L, spb, beat - cycleOf(L, spb) / TUNING.stepsPerBeat, beat)
+      .filter(({ tok, beat: at }) => beat - at < ringBeats(L, tok, spb))
+      .flatMap(({ tok, beat: at }) => tokenMidis(tok).map(midi => ({
+        pc: mod(midi, 12), index, level: 1 - (beat - at) / ringBeats(L, tok, spb),
+      }))));
+}
+
+/* -------------------- pure above, world below -------------------- */
+
+/* ========== XII. SURFACES ==========
+   Each painter receives a snapshot and leaves the DOM matching it. `painted` remembers
+   what is on screen, so painting is a comparison and most frames write nothing. */
+
+const byId = id => document.getElementById(id);
+const setText = (el, text) => { if (el.textContent !== text) el.textContent = text; };
+const setHtml = (el, html, memo) => { if (memo.html !== html){ memo.html = html; el.innerHTML = html; } };
+
+const DOM = {
+  code: byId('code'), status: byId('status'), rackList: byId('rackList'), parkList: byId('parkList'),
+  cli: byId('cli'), cliLines: byId('cliLines'), cliPrompt: byId('cliPrompt'),
+  stageTag: byId('stageTag'), stageLine: byId('stageLine'),
+  session: byId('session'), bands: byId('bands'),
+};
+
+const painted = {
+  doc: null, signature: null, view: null, editMode: null, demon: null, set: null,
+  overlay: null, spansByKey: new Map(), lit: [], lastStep: null, playing: null,
+  rackInputs: [], rackLeds: new Map(), cliSeq: 0, flashSeq: 0, readoutAt: 0, stageFont: 0,
+  sessionMemo: {}, statusMemo: {}, promptMemo: {},
+};
+
+/* ---- the editor ---- */
+const segmentHtml = ({ cls, text, key, rest }) => key == null
+  ? '<span class="' + cls + '">' + esc(text) + '</span>'
+  : '<span class="t ' + cls + (rest ? ' r' : '') + '" data-k="' + esc(key) + '">' + esc(text) + '</span>';
+
+const lineHtml = (line, i) =>
+  '<div class="ln' + (line.off ? ' off' : '') + '"' +
+  (line.layer ? ' data-l="' + esc(line.layer) + '"' : '') +
+  (line.highlight ? ' style="--hl:' + esc(line.highlight) + ';--a:' + esc(line.accent) + '"' : '') + '>' +
+  '<span class="gut">' + (i + 1) + '</span><span>' + line.segments.map(segmentHtml).join('') + '​</span></div>';
+
+function paintCode(m){
+  if (!m.doc || m.doc === painted.doc) return;
+  DOM.code.innerHTML = m.doc.lines.map(lineHtml).join('');
+  const index = new Map();
+  DOM.code.querySelectorAll('.t').forEach(el => {
+    const key = el.dataset.k;
+    index.has(key) ? index.get(key).push(el) : index.set(key, [el]);
+  });
+  painted.spansByKey = index;
+  painted.doc = m.doc;
+  painted.lit = [];
+  painted.lastStep = null;
+  painted.overlay = null;
+}
+
+/* Pending underlines and the selection box sit on top of the code as classes. */
+function paintOverlay(m){
+  const overlay = m.pending.map(editKey).join() + '/' + (m.selection ? tokenKey(m.selection.layer, m.selection.step) : '');
+  if (overlay === painted.overlay) return;
+  painted.overlay = overlay;
+  DOM.code.querySelectorAll('.t.pend,.t.sel').forEach(el => el.classList.remove('pend', 'sel'));
+  m.pending.forEach(edit => (painted.spansByKey.get(editKey(edit)) || []).forEach(el => el.classList.add('pend')));
+  if (m.selection && m.selection.step != null)
+    (painted.spansByKey.get(tokenKey(m.selection.layer, m.selection.step)) || []).forEach(el => el.classList.add('sel'));
+}
+
+/* Green once for a confirmed change, red once for a refusal. */
+const FLASH_COLOR = { good: 'rgba(156,204,143,.7)', bad: 'rgba(229,72,77,.75)' };
+function paintFlashes(m){
+  m.flashes.filter(f => f.seq > painted.flashSeq).forEach(f =>
+    (painted.spansByKey.get(f.key) || []).forEach(el =>
+      el.animate([{ backgroundColor: FLASH_COLOR[f.tone] }, { backgroundColor: 'transparent' }], { duration: 900, easing: 'ease-out' })));
+  painted.flashSeq = m.flashSeq;
+}
+
+/* The playhead: on each new step, swap one class on the tokens sounding. Nothing reflows. */
+function paintPlayhead(m, step){
+  const playing = isRunning(m.set);
+  if (step === painted.lastStep && playing === painted.playing) return;
+  painted.lastStep = step;
+  painted.playing = playing;
+  painted.lit.forEach(el => el.classList.remove('on'));
+  painted.lit = !playing || !m.doc ? [] : m.doc.onsets.flatMap(({ cycle, table }) =>
+    table[mod(step, cycle)].flatMap(key => painted.spansByKey.get(key) || []));
+  painted.lit.forEach(el => el.classList.add('on'));
+  paintRackLeds(m, step, playing);
+}
+
+function paintStatus(m){
+  const { head, tail } = describeSelection(m.set, m.selection);
+  const mode = m.editMode ? ' · EDIT MODE: clicks send requests' : '';
+  const open = m.pending.length ? ' · ' + m.pending.length + ' waiting on performer' : '';
+  setHtml(DOM.status, '<b>' + esc(head + mode + open) + '</b> · ' + esc(tail), painted.statusMemo);
+}
+
+/* ---- the channel rack ---- */
+const ledHtml = (L, spb) => {
+  const span = Math.min(spb, cycleOf(L, spb));
+  const hits = new Set((L.tokens || []).map(t => mod(t.step, span)));
+  return Array.from({ length: span }, (_, i) => '<i class="' + (hits.has(i) ? 'hit' : '') + '"></i>').join('');
+};
+
+function channelHtml(L, i, spb, selected, mutePending){
+  return '<div class="ch' + (L.muted ? ' muted' : '') + (selected ? ' sel' : '') + '" data-ch="' + esc(L.id) + '">' +
+    '<span class="idx">' + pad2(i + 1) + '</span>' +
+    '<span class="chip" style="background:' + esc(layerColor(L, i)) + '"></span>' +
+    '<span><span class="nm">' + esc(L.name) + '</span>' +
+    '<span class="meta">' + esc([L.kind, cycleOf(L, spb) + ' st', L.params && L.params.s].filter(Boolean).join(' · ')) + '</span>' +
+    '<span class="leds">' + ledHtml(L, spb) + '</span></span>' +
+    '<span class="side"><button class="mute' + (L.muted ? ' on' : '') + (mutePending ? ' pend' : '') + '" data-mute="' + esc(L.id) + '" title="Request mute">M</button>' +
+    (L.verdict ? '<span class="badge">' + esc(L.verdict) + '</span>' : '') + '</span></div>';
+}
+const parkedHtml = (L, i, selected) =>
+  '<div class="ch parked' + (selected ? ' sel' : '') + '" data-ch="' + esc(L.id) + '">' +
+  '<span class="idx">P' + (i + 1) + '</span><span class="chip" style="background:var(--dim2)"></span>' +
+  '<span><span class="nm">' + esc(L.name) + '</span><span class="meta">' + esc(L.plain || '') + '</span></span>' +
+  '<span class="side"><span class="badge park">Parked</span></span></div>';
+
+function paintRack(m){
+  const inputs = [m.doc, m.selection, m.pending];
+  if (!m.doc || inputs.every((x, i) => x === painted.rackInputs[i])) return;
+  painted.rackInputs = inputs;
+  const spb = spbOf(m.set);
+  const selected = id => !!m.selection && m.selection.layer === id;
+  const layers = m.set.layers || [], parked = m.set.parked || [];
+  const muting = new Set(m.pending.filter(e => e.op === 'mute').map(e => e.layer));
+  DOM.rackList.innerHTML = layers.map((L, i) => channelHtml(L, i, spb, selected(L.id), muting.has(L.id))).join('');
+  DOM.parkList.innerHTML = parked.map((L, i) => parkedHtml(L, i, selected(L.id))).join('');
+  setText(byId('rackCount'), layers.length + ' CH');
+  setText(byId('parkCount'), String(parked.length));
+  byId('parkHead').hidden = !parked.length;
+  painted.rackLeds = new Map([...DOM.rackList.querySelectorAll('.ch')].map(el => [el.dataset.ch, [...el.querySelectorAll('.leds i')]]));
+  painted.lastStep = null;
+}
+
+function paintRackLeds(m, step, playing){
+  if (!m.set) return;
+  const spb = spbOf(m.set);
+  (m.set.layers || []).forEach(L => {
+    const leds = painted.rackLeds.get(L.id) || [];
+    const now = playing ? mod(step, cycleOf(L, spb)) % leds.length : -1;
+    leds.forEach((el, i) => el.classList.toggle('now', i === now));
+  });
+}
+
+/* ---- the terminal ---- */
+const CURSOR_HTML = '<span id="cursor"></span>';
+function promptHtml(set){
+  const user = humanOf(set).toLowerCase();
+  return '<span class="cl-user">' + esc(user) + '@telepathy</span> <span class="cl-path">~/strudel-mirror</span> <span class="cl-dim">$</span> ';
+}
+const ENTRY_HTML = {
+  input:  (e, set) => promptHtml(set) + esc(e.text),
+  output: e => '<span class="cl-out">-&gt; ' + esc(e.text) + '</span>',
+  stamp:  e => '<span class="cl-time">[' + clockTime(e.t) + ']</span> ' + esc(e.text),
+  error:  e => '<span class="cl-time">[' + clockTime(e.t) + ']</span> <span class="cl-err">' + esc(e.text) + '</span>',
+};
+
+function paintCli(m){
+  const fresh = m.cli.filter(e => e.seq > painted.cliSeq);
+  if (!fresh.length) return;
+  const el = DOM.cli;
+  const pinned = el.scrollHeight - el.scrollTop - el.clientHeight < 24;
+  const batch = document.createDocumentFragment();
+  const rows = fresh.map(entry => {
+    const row = document.createElement('div');
+    row.innerHTML = ENTRY_HTML[entry.kind](entry, m.set);
+    batch.appendChild(row);
+    return row;
+  });
+  DOM.cliLines.appendChild(batch);
+  if (m.view === 'stage') rows.forEach(row => typeOut(row, row.textContent.length));
+  while (DOM.cliLines.childElementCount > TUNING.cliMaxLines) DOM.cliLines.firstElementChild.remove();
+  painted.cliSeq = m.cliSeq;
+  if (pinned) el.scrollTop = el.scrollHeight;
+}
+
+/* ---- transport and chrome ---- */
+function paintChrome(m){
+  if (m.view !== painted.view){
+    painted.view = m.view;
+    document.body.dataset.view = m.view;
+    document.querySelectorAll('.tab[data-view]').forEach(t => t.classList.toggle('active', t.dataset.view === m.view));
+    DOM.cli.scrollTop = DOM.cli.scrollHeight;
+    lineMemo.html = '';                       // the instrument line types itself in again
+  }
+  if (m.editMode !== painted.editMode){
+    painted.editMode = m.editMode;
+    document.body.dataset.edit = m.editMode ? 'on' : 'off';
+    byId('editToggle').classList.toggle('active', m.editMode);
+  }
+  const demon = m.section === 'DEMON';
+  if (demon !== painted.demon){ painted.demon = demon; document.body.classList.toggle('demon', demon); }
+  if (m.set !== painted.set){
+    painted.set = m.set;
+    if (!m.set) return;
+    setHtml(DOM.cliPrompt, promptHtml(m.set) + CURSOR_HTML, painted.promptMemo);
+    setText(byId('tSet'), m.set.set || 'UNTITLED');
+    setText(byId('tKey'), m.set.key || '---');
+    setText(byId('tPlay'), isRunning(m.set) ? 'PLAYING' : 'STOPPED');
+    byId('playLamp').classList.toggle('on', isRunning(m.set));
+  }
+}
+
+const FEED_LABEL = { live: live => 'LIVE · ' + (live.layers == null ? '?' : live.layers) + ' LYR', offline: () => 'FEED OFFLINE', none: () => 'NO FEED' };
+
+function paintFeed(m){
+  const led = byId('led');
+  if (led.className !== m.feed) led.className = m.feed;
+  setText(byId('tFeed'), FEED_LABEL[m.feed](m.live));
+  setText(byId('tBpm'), String((m.feed === 'live' && m.live.bpm) || (m.set && m.set.bpm) || '---'));
+  setText(byId('bandSource'), m.feed === 'live' ? 'FFT' : 'STATE');
+  DOM.stageTag.hidden = m.feed === 'live';
+}
+
+function paintPosition(beat, m){
+  if (!m.set) return;
+  const p = positionAt(beat, spbOf(m.set));
+  setText(byId('tPos'), p.bar + ' : ' + p.beat + ' : ' + p.step);
+}
+
+/* ---- the mixer ---- */
+const meterEls = name => ({ bar: byId(name + 'Bar'), hold: byId(name + 'Hold'), db: byId(name + 'Db'), val: byId(name + 'Val') });
+const METERS = { rms: meterEls('rms'), peak: meterEls('peak') };
+
+DOM.bands.innerHTML = BANDS.map((b, i) =>
+  '<div class="bcol"><div class="well"><div class="level" id="bl' + i + '"></div><div class="tick" id="bt' + i + '"></div></div>' +
+  '<div class="bval" id="bv' + i + '">0.00</div><div class="blab">' + b.label + '<br>' + b.hz + '</div></div>').join('');
+const BAND_ELS = BANDS.map((_, i) => ({ level: byId('bl' + i), tick: byId('bt' + i), value: byId('bv' + i) }));
+
+function paintMeters(signal){
+  const drive = (meter, value, hold) => {
+    meter.bar.style.transform = 'scaleX(' + unit(value).toFixed(3) + ')';
+    meter.hold.style.transform = 'translateX(' + (unit(hold.level) * 100).toFixed(1) + '%)';
+  };
+  drive(METERS.rms, signal.rms, signal.rmsHold);
+  drive(METERS.peak, signal.peak, signal.peakHold);
+  BAND_ELS.forEach((el, i) => {
+    el.level.style.transform = 'scaleY(' + unit(signal.bands[i]).toFixed(3) + ')';
+    el.tick.style.transform = 'translateY(' + ((1 - unit(signal.bandHolds[i].level)) * 100).toFixed(1) + '%)';
+  });
+}
+
+function paintReadouts(m, signal, beat, now, ms){
+  if (ms - painted.readoutAt < TUNING.readoutEveryMs) return;
+  painted.readoutAt = ms;
+  setText(METERS.rms.db, toDb(signal.rms));
+  setText(METERS.peak.db, toDb(signal.peak));
+  setText(METERS.rms.val, signal.rms.toFixed(3));
+  setText(METERS.peak.val, signal.peak.toFixed(3));
+  setText(byId('holdVal'), signal.peakHold.level.toFixed(3));
+  setText(byId('feedAge'), m.live ? (Math.max(0, now - m.live.ts) / 1000).toFixed(1) + 's' : '---');
+  setText(byId('mixClock'), clockTime(now));
+  BAND_ELS.forEach((el, i) => setText(el.value, signal.bands[i].toFixed(2)));
+  const rows = sessionRows(m, beat, m.live).map(([k, v]) => '<div class="kv"><span>' + esc(k) + '</span><b>' + esc(v) + '</b></div>').join('');
+  setHtml(DOM.session, rows, painted.sessionMemo);
+}
+
+/* ========== XIII. RAILS ==========
+   Each draw takes a graphics context and plain values. */
+
+function fitCanvas(canvas, maxDpr){
+  const box = canvas.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
+  canvas.width = Math.round(box.width * dpr);
+  canvas.height = Math.round(box.height * dpr);
+  const g = canvas.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { g, w: box.width, h: box.height };
+}
+
+const SURFACE = { mini: null, spectrum: null, stage: null };
+function watchCanvas(name, canvas, maxDpr){
+  const refit = () => { SURFACE[name] = canvas.clientWidth > 0 ? fitCanvas(canvas, maxDpr) : null; };
+  new ResizeObserver(refit).observe(canvas);
+  refit();
+}
+
+/* Minimap: one flat lane per layer, notes as rectangles, a fixed playhead. */
+function drawMini({ g, w, h }, set, beat, accent){
+  g.clearRect(0, 0, w, h);
+  const layers = (set && set.layers) || [];
+  if (!layers.length) return;
+  const spb = spbOf(set);
+  const { miniBeatsBehind: behind, miniBeatsAhead: ahead } = TUNING;
+  const span = behind + ahead;
+  const toX = b => (b - beat + behind) / span * w;
+  const laneH = h / layers.length;
+  layers.forEach((L, i) => {
+    const y = i * laneH;
+    g.fillStyle = i % 2 ? 'rgba(255,255,255,.03)' : 'rgba(255,255,255,.012)';
+    g.fillRect(0, y, w, laneH);
+    g.fillStyle = layerColor(L, i);
+    g.globalAlpha = L.muted ? 0.2 : 1;
+    hitsBetween(L, spb, beat - behind - 1, beat + ahead).forEach(({ tok, beat: at }) => {
+      const width = Math.max(2, (tok.dur || 1) / TUNING.stepsPerBeat / span * w - 1);
+      g.fillRect(Math.round(toX(at)), Math.round(y + 1), Math.round(width), Math.max(1, Math.round(laneH - 2)));
+    });
+    g.globalAlpha = 1;
+  });
+  g.fillStyle = accent;
+  g.fillRect(Math.round(toX(beat)), 0, 1, h);
+}
+
+/* Spectrum strip: flat bars, one colour. */
+function drawSpectrum({ g, w, h }, bands, accent){
+  g.clearRect(0, 0, w, h);
+  g.fillStyle = accent;
+  const bars = interpolateBands(bands, TUNING.spectrumBars);
+  const barW = w / bars.length;
+  bars.forEach((v, i) => {
+    const barH = Math.round(unit(v) * (h - 2));
+    g.fillRect(Math.round(i * barW) + 1, h - 1 - barH, Math.max(1, Math.round(barW) - 1), barH);
+  });
+}
+
+/* ========== XIV. INSTRUMENTS ==========
+   Flat graphs drawn behind the code. Each takes a context and a plain scene, reads the
+   clock, and owns nothing. One palette, hairlines, and no effects: precision is the ornament. */
+
+const HAIR = 'rgba(207,211,220,.07)';
+const PLAYHEAD = 'rgba(207,211,220,.6)';
+const NOW = '#f4f5f7';
+const DEMON_INKS = ['#e5484d','#ff8a5c','#c0262b','#ff6b4a','#f07a5a','#a81e2a'];
+const MONO_FONT = '10px "SF Mono",Menlo,Consolas,monospace';
+
+/* Past notes rest, the present is lit, the future waits. */
+const noteAlpha = (at, beat, length) => beat >= at + length ? 0.16 : beat >= at ? 1 : 0.4;
+
+function drawGrid(g, { w, h }, x0, barW, bars){
+  g.fillStyle = HAIR;
+  for (let n = 0; n <= bars; n++) g.fillRect(Math.round(x0 + n * barW), 0, 1, h);
+}
+
+/* pianoroll: time runs right to left, pitch climbs, and the present never moves. */
+function drawPianoroll(g, s){
+  const { w, h, set, beat, inkOf } = s;
+  const spb = spbOf(set), barBeats = spb / TUNING.stepsPerBeat;
+  const span = STAGE.rollBars * barBeats;
+  const beatW = w / span;
+  const nowX = w * STAGE.rollPlayhead;
+  const toX = at => nowX + (at - beat) * beatW;
+  const rows = rollRows(set);
+  const rowH = h / Math.max(1, rows.size);
+  const bar = Math.max(2, Math.min(rowH * 0.74, 16));
+  const firstBar = Math.floor((beat - span) / barBeats);
+  drawGrid(g, s, toX(firstBar * barBeats), barBeats * beatW, STAGE.rollBars * 2 + 2);
+
+  (set.layers || []).forEach((L, i) => {
+    if (L.muted) return;
+    g.fillStyle = inkOf(L, i);
+    hitsBetween(L, spb, beat - span, beat + span).forEach(({ tok, beat: at }) => {
+      const length = ringBeats(L, tok, spb);
+      const keys = L.kind === 'drum' ? ['d:' + tok.text] : tokenMidis(tok);
+      const left = toX(at), width = Math.max(2, length * beatW - 1);
+      if (left > w || left + width < 0) return;
+      g.globalAlpha = noteAlpha(at, beat, length);
+      keys.forEach(key => {
+        const y = Math.round(h - (rows.get(key) + 1) * rowH + (rowH - bar) / 2);
+        g.fillRect(Math.round(left), y, Math.round(width), Math.round(bar));
+      });
+    });
+  });
+  g.globalAlpha = 1;
+  g.fillStyle = PLAYHEAD;
+  g.fillRect(Math.round(nowX), 0, 1, h);
+}
+
+/* punchcard: two bars laid out flat, one row per layer, every step a place. */
+function drawPunchcard(g, s){
+  const { w, h, set, beat, inkOf } = s;
+  const spb = spbOf(set), barBeats = spb / TUNING.stepsPerBeat;
+  const steps = STAGE.cardBars * spb;
+  const layers = (set.layers || []).map((L, i) => ({ L, i })).filter(({ L }) => !L.muted);
+  const cellW = w / steps, rowH = h / Math.max(1, layers.length);
+  const start = Math.floor(beat / (STAGE.cardBars * barBeats)) * STAGE.cardBars * barBeats;
+  const here = stepsOf(beat - start);
+  drawGrid(g, s, 0, cellW * TUNING.stepsPerBeat, steps / TUNING.stepsPerBeat);
+  layers.forEach(({ L, i }, row) => {
+    g.fillStyle = inkOf(L, i);
+    hitsBetween(L, spb, start, start + STAGE.cardBars * barBeats - 0.001).forEach(({ tok, beat: at }) => {
+      const step = Math.round((at - start) * TUNING.stepsPerBeat);
+      const vel = tok.vel == null ? 0.5 : tok.vel;
+      g.globalAlpha = step === here ? 1 : step < here ? 0.42 : 0.2 + 0.2 * vel;
+      const mark = Math.min(rowH * 0.5, 4 + 12 * Math.min(vel * 1.6, 1));
+      g.fillRect(Math.round(step * cellW) + 1, Math.round((row + 0.5) * rowH - mark / 2), Math.ceil(cellW) - 3, Math.round(mark));
+    });
+  });
+  g.globalAlpha = 1;
+  g.fillStyle = PLAYHEAD;
+  g.fillRect(Math.round((beat - start) * TUNING.stepsPerBeat * cellW), 0, 1, h);
+}
+
+/* spiral: one turn is one bar. The future winds in from the rim and the present stays at twelve. */
+function drawSpiral(g, s){
+  const { w, h, set, beat, inkOf } = s;
+  const spb = spbOf(set), barBeats = spb / TUNING.stepsPerBeat;
+  const cx = w * 0.64, cy = h * 0.5;
+  const rim = Math.min(h * 0.48, w * 0.34), core = rim * 0.14;
+  const turnGap = (rim - core) / (STAGE.spiralTurns * 2);
+  const mid = core + turnGap * STAGE.spiralTurns;
+  const place = bars => {
+    const angle = bars * Math.PI * 2 - Math.PI / 2;
+    const r = mid + bars * turnGap;
+    return [cx + Math.cos(angle) * r, cy + Math.sin(angle) * r];
+  };
+  const stroke = (from, to) => {
+    g.beginPath();
+    const segments = Math.max(2, Math.ceil((to - from) * 40));
+    for (let n = 0; n <= segments; n++){
+      const [x, y] = place(from + (to - from) * n / segments);
+      n ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.stroke();
+  };
+  g.strokeStyle = HAIR; g.lineWidth = 1;
+  stroke(-STAGE.spiralTurns, STAGE.spiralTurns);
+
+  (set.layers || []).forEach((L, i) => {
+    if (L.muted) return;
+    g.strokeStyle = inkOf(L, i);
+    const reach = STAGE.spiralTurns * barBeats;
+    hitsBetween(L, spb, beat - barBeats, beat + reach).forEach(({ tok, beat: at }) => {
+      const length = Math.max(ringBeats(L, tok, spb), 0.2);
+      g.globalAlpha = noteAlpha(at, beat, length);
+      g.lineWidth = 1.5 + 5 * (tok.vel == null ? 0.5 : Math.min(tok.vel, 1));
+      stroke((at - beat) / barBeats, (at + length - beat) / barBeats);
+    });
+  });
+  g.globalAlpha = 1;
+  g.fillStyle = PLAYHEAD;
+  g.fillRect(Math.round(cx), Math.round(cy - mid - turnGap), 1, Math.round(turnGap * 2));
+}
+
+/* pitchwheel: the twelve notes on a circle. What sounds together joins into a shape. */
+function drawPitchwheel(g, s){
+  const { w, h, set, beat, inkOf } = s;
+  const cx = w * 0.64, cy = h * 0.5, radius = Math.min(h * 0.4, w * 0.3);
+  const spot = pc => {
+    const angle = pc / 12 * Math.PI * 2 - Math.PI / 2;
+    return [cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius];
+  };
+  g.strokeStyle = HAIR; g.lineWidth = 1;
+  g.beginPath(); g.arc(cx, cy, radius, 0, Math.PI * 2); g.stroke();
+  const ringing = ringingNotes(set, beat);
+  const classes = [...new Set(ringing.map(n => n.pc))].sort((a, b) => a - b);
+  if (classes.length > 2){
+    g.fillStyle = 'rgba(207,211,220,.05)';
+    g.strokeStyle = 'rgba(207,211,220,.3)';
+    g.beginPath();
+    classes.forEach((pc, n) => { const [x, y] = spot(pc); n ? g.lineTo(x, y) : g.moveTo(x, y); });
+    g.closePath(); g.fill(); g.stroke();
+  }
+  ringing.forEach(n => {
+    const L = set.layers[n.index];
+    const [x, y] = spot(n.pc);
+    g.strokeStyle = g.fillStyle = inkOf(L, n.index);
+    g.globalAlpha = 0.25 + 0.75 * n.level;
+    g.beginPath(); g.moveTo(cx, cy); g.lineTo(x, y); g.stroke();
+    g.beginPath(); g.arc(x, y, 4 + 7 * n.level, 0, Math.PI * 2); g.fill();
+  });
+  g.globalAlpha = 1;
+  g.font = MONO_FONT; g.textAlign = 'center'; g.fillStyle = 'rgba(207,211,220,.72)';
+  SPELLED.forEach((name, pc) => {
+    const angle = pc / 12 * Math.PI * 2 - Math.PI / 2;
+    g.fillText(name, cx + Math.cos(angle) * (radius + 20), cy + Math.sin(angle) * (radius + 20) + 4);
+  });
+  g.textAlign = 'left';
+}
+
+/* spectrum: the six measured bands scrolling away, low at the bottom. Each new
+   column is drawn once and the page slides, so the cost does not grow with the window. */
+const SPECTRO = { canvas: document.createElement('canvas'), at: 0 };
+
+function drawSpectrum2(g, s){
+  const { w, h, bands, ms, accent } = s;
+  const paper = SPECTRO.canvas, rows = 180, width = 300;
+  if (paper.width !== width){ paper.width = width; paper.height = rows; }
+  const p = paper.getContext('2d');
+  if (ms - SPECTRO.at >= 40){
+    SPECTRO.at = ms;
+    p.globalCompositeOperation = 'copy';
+    p.drawImage(paper, -1, 0);
+    p.globalCompositeOperation = 'source-over';
+    p.fillStyle = accent;
+    for (let y = 0; y < rows; y++){
+      p.globalAlpha = Math.pow(unit(bandAt(bands, 1 - y / (rows - 1))), 1.4);
+      p.fillRect(width - 1, y, 1, 1);
+    }
+    p.globalAlpha = 1;
+  }
+  g.imageSmoothingEnabled = false;                      // hard strips: this is a measurement, not a mood
+  g.drawImage(paper, 0, 0, w, h);
+}
+
+const INSTRUMENTS = { pianoroll: drawPianoroll, punchcard: drawPunchcard, spiral: drawSpiral, pitchwheel: drawPitchwheel, spectrum: drawSpectrum2 };
+
+function paintStage(m, direction, signal, beat, ms, accent){
+  const surface = SURFACE.stage;
+  if (!surface || !m.set) return;
+  const { g, w, h } = surface;
+  const demon = m.section === 'DEMON';
+  const inkOf = (L, i) => demon ? DEMON_INKS[i % DEMON_INKS.length] : layerColor(L, i);
+  g.clearRect(0, 0, w, h);
+  INSTRUMENTS[direction.visual](g, { w, h, set: m.set, beat, inkOf, bands: signal.bands, ms, accent });
+}
+
+/* The size of the code, and the line that names the instrument, are part of the stage. */
+const lineMemo = {};
+function paintStageCode(m, direction){
+  const surface = SURFACE.stage;
+  if (!surface || !m.doc) return;
+  const reserved = STAGE.terminalRows * 20 + 76;
+  const font = fitCode(m.doc, surface.w, surface.h - reserved);
+  if (font !== painted.stageFont){
+    painted.stageFont = font;
+    DOM.code.style.setProperty('--stage-font', font + 'px');
+  }
+  const call = VISUALS.find(v => v.name === direction.visual).call;
+  const html = '<span class="fn">all</span><span class="punct">(x =&gt; x.</span><span class="fn">' + esc(call.split('(')[0]) + '</span>' +
+    '<span class="punct">(</span><span class="num">' + esc(call.slice(call.indexOf('(') + 1, -1)) + '</span><span class="punct">))</span>' +
+    '<span class="cmt">  // the instrument behind the code</span>';
+  if (lineMemo.html !== html){
+    lineMemo.html = html;
+    DOM.stageLine.innerHTML = html;
+    typeOut(DOM.stageLine, DOM.stageLine.textContent.length);
+  }
+}
+
+/* Text arrives the way typed text does: one character at a time. */
+function typeOut(el, chars){
+  el.animate([{ clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0 0 0)' }],
+    { duration: chars / STAGE.typeCharsPerSec * 1000, easing: 'steps(' + Math.max(1, chars) + ')' });
+}
+
+/* ========== XV. LOOP ==========
+   The one clock of the page. Network and input only dispatch; everything reaches the
+   screen here, once a frame, from one snapshot. A hidden tab draws nothing. */
+
+let model = initialModel;
+let signal = initialSignal();
+let direction = initialDirection();
+const dispatch = action => { model = reduce(model, action); };
+
+const cssVar = name => getComputedStyle(document.body).getPropertyValue(name).trim();
+const accentMemo = { demon: null, color: '' };
+function accentColor(demon){
+  if (accentMemo.demon !== demon){ accentMemo.demon = demon; accentMemo.color = cssVar('--acc'); }
+  return accentMemo.color;
+}
+
+function frame(ms){
+  requestAnimationFrame(frame);
+  if (document.hidden) return;
+  const now = Date.now();
+  dispatch({ type: 'tick', now });
+  const m = model;
+  const beat = beatAt(m.set, now);
+  signal = nextSignal(signal, meterTargets(m.live, m.feed, m.set, beat), ms);
+
+  paintChrome(m);
+  paintFeed(m);
+  paintCode(m);
+  paintRack(m);
+  paintOverlay(m);
+  paintFlashes(m);
+  paintPlayhead(m, stepsOf(beat));
+  paintStatus(m);
+  paintCli(m);
+  paintPosition(beat, m);
+  paintMeters(signal);
+  paintReadouts(m, signal, beat, now, ms);
+
+  const accent = accentColor(m.section === 'DEMON');
+  if (SURFACE.spectrum) drawSpectrum(SURFACE.spectrum, signal.bands, accent);
+  if (m.view === 'editor' && SURFACE.mini) drawMini(SURFACE.mini, m.set, beat, accent);
+  if (m.view === 'stage'){
+    direction = nextDirection(direction, stageFacts(m, beat));
+    paintStageCode(m, direction);
+    paintStage(m, direction, signal, beat, ms, accent);
+  }
+}
+
+/* ========== XVI. WIRES ==========
+   Everything arriving from outside the page. Each wire turns an event into an action. */
+
+const getJson = url => fetch(url).then(r => r.json());
+const receiveState = snapshot => {
+  if (snapshot && typeof snapshot === 'object' && !snapshot.error) dispatch({ type: 'state', snapshot, now: Date.now() });
+};
+
+/* state.json: pushed over SSE, with a slow poll for the gaps */
+function connectState(){
+  const events = new EventSource('/events');
+  events.addEventListener('state', ev => receiveState(JSON.parse(ev.data)));
+  events.onopen = () => dispatch({ type: 'link', link: 'up' });
+  events.onerror = () => dispatch({ type: 'link', link: 'down' });
+  getJson('/state').then(receiveState).catch(() => {});
+  setInterval(() => { if (!model.set) getJson('/state').then(receiveState).catch(() => {}); }, TUNING.statePollMs);
+}
+
+/* live.json: one request in flight at a time, so a slow server can never queue up */
+function pollLive(){
+  const again = () => setTimeout(pollLive, TUNING.feedPollMs);
+  getJson('/live').then(sample => {
+    const valid = sample && sample.live !== false && typeof sample.ts === 'number';
+    const loud = !!sample && sample.rms > TUNING.heardFloor;
+    dispatch({ type: 'live', sample: valid ? sample : null, loud, now: Date.now() });
+  }).catch(() => {}).then(again);
+}
+
+/* edits: the safety net. /edits restores requests after a reload; /state confirms them if SSE missed a write */
+function pollEdits(){
+  getJson('/edits').then(edits => dispatch({ type: 'editLog', edits, now: Date.now() })).catch(() => {});
+  if (model.pending.length) getJson('/state').then(receiveState).catch(() => {});
+}
+
+function postEdit(fields){
+  const now = Date.now();
+  const id = 'em' + now.toString(36) + Math.random().toString(36).slice(2, 7);
+  const edit = composeEdit(fields, model.set, id, now);
+  dispatch({ type: 'editSent', edit, now });
+  fetch('/edit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(edit) })
+    .then(r => r.json())
+    .then(reply => { if (!reply || !reply.ok) throw new Error((reply && reply.error) || 'server refused'); })
+    .catch(err => dispatch({ type: 'editFailed', edit, reason: err.message, now: Date.now() }));
+}
+
+/* ---- pointer input ---- */
+const splitKey = key => { const at = key.lastIndexOf('|'); return { layer: key.slice(0, at), step: Number(key.slice(at + 1)) }; };
+
+function onCodeClick(ev){
+  const token = ev.target.closest('.t');
+  const line = ev.target.closest('.ln');
+  if (!token){
+    if (line && line.dataset.l) dispatch({ type: 'select', selection: { layer: line.dataset.l, step: null } });
+    return;
+  }
+  const { layer, step } = splitKey(token.dataset.k);
+  if (step === MUTE_STEP){ dispatch({ type: 'select', selection: { layer, step: null } }); return; }
+  dispatch({ type: 'select', selection: { layer, step } });
+  if (model.editMode) openDraft(layer, step, token);
+}
+
+function onRackClick(ev){
+  const mute = ev.target.closest('[data-mute]');
+  if (mute){
+    const L = layerById(model.set, mute.dataset.mute);
+    if (L) postEdit({ op: 'mute', layer: L.id, muted: !L.muted });
+    return;
+  }
+  const row = ev.target.closest('[data-ch]');
+  if (!row) return;
+  dispatch({ type: 'select', selection: { layer: row.dataset.ch, step: null } });
+  const firstLine = DOM.code.querySelector('.ln[data-l="' + CSS.escape(row.dataset.ch) + '"]');
+  if (firstLine) firstLine.scrollIntoView({ block: 'nearest' });
+}
+
+/* ---- the edit request form ---- */
+let draft = null;
+const DRAFT = { box: byId('draft'), title: byId('draftTitle'), text: byId('draftText'), vel: byId('draftVel'), velVal: byId('draftVelVal'), del: byId('draftDelete') };
+
+function openDraft(layerId, step, anchor){
+  const L = layerById(model.set, layerId);
+  const from = (L.tokens || []).find(t => t.step === step) || null;
+  const hint = last(L.tokens || []);
+  draft = { layer: layerId, step, from: from && { text: from.text, vel: from.vel } };
+  DRAFT.title.textContent = (from ? 'EDIT ' : 'ADD ') + layerId.toUpperCase() + ' STEP ' + step;
+  DRAFT.text.value = from ? from.text : hint ? hint.text : '';
+  DRAFT.vel.value = from && from.vel != null ? from.vel : 0.8;
+  DRAFT.velVal.textContent = Number(DRAFT.vel.value).toFixed(2);
+  DRAFT.del.hidden = !from;
+  DRAFT.box.hidden = false;
+  const r = anchor.getBoundingClientRect();
+  DRAFT.box.style.left = clamp(r.left - 40, 8, window.innerWidth - 244) + 'px';
+  DRAFT.box.style.top = Math.min(window.innerHeight - 196, r.bottom + 6) + 'px';
+  DRAFT.text.focus();
+  DRAFT.text.select();
+}
+function closeDraft(){ DRAFT.box.hidden = true; draft = null; }
+
+function sendDraft(){
+  const text = DRAFT.text.value.trim();
+  const vel = Number(DRAFT.vel.value);
+  const { layer, step, from } = draft;
+  const unchanged = from && String(from.text) === text && Math.abs((from.vel || 0) - vel) < 0.005;
+  if (!text) dispatch({ type: 'refused', text: 'edit not sent: token text is empty, use DELETE to remove', now: Date.now() });
+  else if (!unchanged) postEdit({ op: from ? 'set' : 'add', layer, step, text, vel, from });
+  closeDraft();
+}
+function deleteDraft(){
+  const { layer, step, from } = draft;
+  postEdit({ op: 'delete', layer, step, from });
+  closeDraft();
+}
+
+/* Presence is worth noting once a second, not once per mouse pixel. */
+function noteInput(){
+  const now = Date.now();
+  if (now - model.lastInputAt > 1000) dispatch({ type: 'input', now });
+}
+
+/* A bonus, never a requirement. Double-clicking a token still selects it. */
+function toggleFullscreen(ev){
+  if (model.view !== 'stage' || ev.target.closest('.t')) return;
+  if (document.fullscreenElement) document.exitFullscreen();
+  else document.documentElement.requestFullscreen().catch(() => {});
+}
+
+function bindInput(){
+  DOM.code.addEventListener('click', onCodeClick);
+  byId('rack').addEventListener('click', onRackClick);
+  document.querySelectorAll('.tab[data-view]').forEach(tab =>
+    tab.addEventListener('click', () => dispatch({ type: 'view', view: tab.dataset.view })));
+  byId('editToggle').addEventListener('click', () => dispatch({ type: 'editMode' }));
+  byId('center').addEventListener('dblclick', toggleFullscreen);
+  ['pointermove', 'pointerdown', 'keydown', 'wheel'].forEach(kind =>
+    window.addEventListener(kind, noteInput, { passive: true }));
+  byId('draftSend').addEventListener('click', sendDraft);
+  byId('draftDelete').addEventListener('click', deleteDraft);
+  byId('draftClose').addEventListener('click', closeDraft);
+  DRAFT.vel.addEventListener('input', () => { DRAFT.velVal.textContent = Number(DRAFT.vel.value).toFixed(2); });
+  DRAFT.text.addEventListener('keydown', ev => { if (ev.key === 'Enter') sendDraft(); });
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeDraft(); });
+  document.addEventListener('mousedown', ev => {
+    if (!DRAFT.box.hidden && !DRAFT.box.contains(ev.target) && !ev.target.closest('.t')) closeDraft();
+  });
+}
+
+/* ---- downbeat ---- */
+function start(){
+  watchCanvas('mini', byId('mini'), 2);
+  watchCanvas('spectrum', byId('spectrum'), 2);
+  watchCanvas('stage', byId('stageCanvas'), 1.5);
+  setHtml(DOM.cliPrompt, promptHtml(null) + CURSOR_HTML, painted.promptMemo);
+  DOM.code.innerHTML = lineHtml(plainLine('// waiting for state.json'), 0);
+  dispatch({ type: 'input', now: Date.now() });
+  bindInput();
+  connectState();
+  pollLive();
+  setInterval(pollEdits, TUNING.editPollMs);
+  requestAnimationFrame(frame);
+}
+
+start();
+</script>
+</body>
+</html>

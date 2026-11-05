@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "episode_id": "tootripsy-hero-asset",
+  "skill_domain": "creator_site_judgment",
+  "creator": {"id": "tootripsy", "name": "Nikhil Gupta"},
+  "decision": "hero_asset",
+  "before": {
+    "screen_ref": "tootripsy hero before pro pass v3",
+    "page_context": "The hero needed to identify the creator and establish the quality of his work immediately. Earlier still and soft-loop treatments had been rejected as defects.",
+    "ax_summary": "A full-viewport opening with the creator brand as the primary text layer."
+  },
+  "action": {
+    "summary": "Use a live loop cut from the creator's own aerial reel, retain the full native-quality source through the crop, place TOOTRIPSY in front, and provide a matching full-resolution poster. Re-cut a 16:9 source-resolution window and encode the delivery at CRF 18 without upscaling.",
+    "selected_ref": "assets/source/img_4770.mp4, 3.000 to 10.000 seconds; 2160x1215 source crop; hero-loop-v3.mp4 and hero-poster-v3.jpg"
+  },
+  "annotation": {
+    "why": "Zac's locked spec required the strongest identity-bearing work to lead, at a quality that makes the creator's work itself the argument. The Blue-Chip standard requires real creator imagery, exact identity fidelity, and no visible template or draft compromise. The review record explicitly treats the native-resolution live loop, creator name in front, and matching poster as the passing hero, while naming the soft crop as the defect.",
+    "reject": "Do not generalize drone footage, aerial imagery, travel subject matter, the TOOTRIPSY wordmark, this exact crop, video as a universal hero format, or this creator's source asset.",
+    "confidence": "high"
+  },
+  "after": {
+    "screen_ref": "qa/REVIEW-V4.md hero pass",
+    "outcome": "The shipped hero uses native autoplay, muted, looped footage with a matching poster and TOOTRIPSY in front. The desktop and mobile treatments avoid the rejected soft center crop."
+  },
+  "provenance": [
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/STAFF-CODEX-PRO-V3.md", "evidence": "Zac's locked hero specification: live native-quality creator footage, creator name in front, 16:9 source-resolution crop, CRF 18, full-resolution matching poster, and explicit rejection of the still and soft loop."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/qa/PRO-REPORT-V3.md", "evidence": "Records the selected segment, native crop, no-upscale pipeline, CRF 18 output, matching poster, and final wiring."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/qa/REVIEW-V4.md", "evidence": "Marks the live loop, native-res crop, name in front, and matching poster PASS; documents the mobile soft-crop correction."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/agency/BLUE-CHIP-STANDARD.md", "evidence": "Requires creator-exact identity and real creator photography first, with craft ambitious enough that the mechanism disappears into the creator."}
+  ]
+}

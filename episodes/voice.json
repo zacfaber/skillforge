@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "episode_id": "tootripsy-voice",
+  "skill_domain": "creator_site_judgment",
+  "creator": {"id": "tootripsy", "name": "Nikhil Gupta"},
+  "decision": "voice",
+  "before": {
+    "screen_ref": "creator bio, captions, and initial agency copy",
+    "page_context": "The copy needed to sound like the creator at a professional level, not like an agency describing him or generic marketing prose.",
+    "ax_summary": "First-person creator copy supported by concise labels, sourced facts, and direct commercial actions."
+  },
+  "action": {
+    "summary": "Write in first person with Nikhil's cadence leveled up: short, plain, confident lines such as 'The postcards. Every trip turns into a postcard.' Prefer his own phrasing, avoid agency-speak and stacked hype, and use no em dashes in final copy.",
+    "selected_ref": "agency/direction.md voice rules, agency/copy.md, and STAFF-CODEX-PRO-V5.md"
+  },
+  "annotation": {
+    "why": "Zac's Blue-Chip standard requires sentence-level fidelity: the copy must be written as the creator, not about him. The direction record specifies minimal, confident, short lines, the creator's own words where possible, and no agency-speak. The review record passes the story because it is first-person and creator-forward.",
+    "reject": "Do not generalize Nikhil's phrases, travel vocabulary, postcard motif, place-first captions, casual expressions, or the exact rhythm of this creator's speech. Do not treat first-person as permission to invent quotations.",
+    "confidence": "high"
+  },
+  "after": {
+    "screen_ref": "qa/REVIEW-V4.md and qa/PRO-REPORT-V5.md",
+    "outcome": "The shipped story and content labels speak in concise first-person language grounded in the creator's public words, while sourced facts and commercial details remain professional and direct."
+  },
+  "provenance": [
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/agency/BLUE-CHIP-STANDARD.md", "evidence": "Requires tone fidelity at sentence level and copy written as the creator rather than about the creator."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/agency/direction.md", "evidence": "Specifies minimal, confident, short lines, creator wording where possible, and no agency-speak or adjective-heavy copy."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/STAFF-CODEX-PRO-V5.md", "evidence": "Directs short first-person lines, place-first framing, plain words, light confidence, and supplies the Postcards line."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/qa/REVIEW-V4.md", "evidence": "Passes subject balance because Story opens the scroll in first person with creator identity and contact present."},
+    {"source": "/Users/zacfaber/nikhil-gupta-mock/qa/PRO-REPORT-V5.md", "evidence": "Verifies the exact Postcards heading and one-line copy in the finished build."}
+  ]
+}
